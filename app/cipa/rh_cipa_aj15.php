@@ -17,6 +17,7 @@ if( $dados ){
     include_once "../includes/f_logs.php";
     include_once "../includes/f_linha_do_tempo.php";
     include_once "../includes/f_ocr.php";
+    include_once "../includes/f_upload_seguro.php";
     //
     $idEmpresa = $_SESSION['idEmpresa'];
     $criado_por = $_SESSION['nmLogin'];
@@ -160,6 +161,11 @@ try {
 
             // Verifica se o arquivo foi enviado
             if (isset($_FILES['ata_arquivo']) && $_FILES['ata_arquivo']['error'] === UPLOAD_ERR_OK) {
+                $validacao = upload_seguro_validar($_FILES['ata_arquivo'], ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']);
+                if ($validacao !== true) {
+                    $conn = null;
+                    die(json_encode(["status" => false, "msg" => $validacao]));
+                }
                 $arquivoTmp = $_FILES['ata_arquivo']['tmp_name'];
                 $nomeOriginal = basename($_FILES['ata_arquivo']['name']);
                 $tamanho = $_FILES['ata_arquivo']['size']; // em bytes
@@ -201,13 +207,26 @@ try {
                     $texto_ocr = ocr($caminhoFinal);
                     $texto_ocr = "$nomeOriginal | " . addslashes($texto_ocr);
                 //
-                $sql = "INSERT INTO rh_documentos (idEmpresa, idPessoa, idTipoDoc, data, descricao, data_validade, arquivo, 
+                $sql = "INSERT INTO rh_documentos (idEmpresa, idPessoa, idTipoDoc, data, descricao, data_validade, arquivo,
                             nome_original, ocr, tags, extensao, tamanho, status, idLoginAprova, origem)
                             VALUES
-                            ($idEmpresa, $idPessoa, $idTipoDoc, '$dataOriginal', '$assunto', '$dataMais10Anos', '$nomeSeguro', '$nomeOriginal', 
-                            '$texto_ocr', '$tags', '$ext', $tamanho, 1, $idLogin, 'CIP')";
+                            (:idEmpresa, :idPessoa, :idTipoDoc, :data, :descricao, :data_validade, :arquivo, :nome_original,
+                            :ocr, :tags, :extensao, :tamanho, 1, :idLogin, 'CIP')";
                 //debug( $sql );
                 $stmt = $conn->prepare($sql);
+                $stmt->bindParam(':idEmpresa', $idEmpresa);
+                $stmt->bindParam(':idPessoa', $idPessoa);
+                $stmt->bindParam(':idTipoDoc', $idTipoDoc);
+                $stmt->bindParam(':data', $dataOriginal);
+                $stmt->bindParam(':descricao', $assunto);
+                $stmt->bindParam(':data_validade', $dataMais10Anos);
+                $stmt->bindParam(':arquivo', $nomeSeguro);
+                $stmt->bindParam(':nome_original', $nomeOriginal);
+                $stmt->bindParam(':ocr', $texto_ocr);
+                $stmt->bindParam(':tags', $tags);
+                $stmt->bindParam(':extensao', $ext);
+                $stmt->bindParam(':tamanho', $tamanho);
+                $stmt->bindParam(':idLogin', $idLogin);
                 $stmt->execute();
             } else {
                 $ata_arquivo_nome = null; // Nenhum arquivo enviado

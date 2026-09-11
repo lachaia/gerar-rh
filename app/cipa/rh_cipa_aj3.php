@@ -15,6 +15,7 @@ if( $dados ){
     include_once "../includes/conexao_gerar.php";
     include_once "../includes/f_logs.php";
     include_once "../includes/f_linha_do_tempo.php";
+    include_once "../includes/f_upload_seguro.php";
     //
     $criado_por = $_SESSION['nmLogin'];
     $idLogin = $_SESSION['idLogin'];
@@ -88,6 +89,11 @@ try {
         // Inserção bem-sucedida
         // Se houver foto, trata o upload
         if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
+            $validacao = upload_seguro_validar($_FILES['foto'], ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']);
+            if ($validacao !== true) {
+                $conn = null;
+                die(json_encode(["status" => false, "msg" => $validacao]));
+            }
             $fotoTmp = $_FILES['foto']['tmp_name'];
             $ext = pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION);
             $ext = strtolower($ext);

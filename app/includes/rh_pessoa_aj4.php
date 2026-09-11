@@ -42,8 +42,10 @@ if (isset($_SESSION['idLogin'])) {
     include_once "../includes/conexao_gerar.php";
     include_once "../includes/f_logs.php";
     include_once "../includes/f_linha_do_tempo.php";
+    include_once "../includes/f_upload_seguro.php";
 } else {
     header("location: logout.php");
+    exit();
 }
 
 $cpf = preg_replace("/\D/", "", $cpf); // Remove tudo que não for número
@@ -109,6 +111,11 @@ if ($idPessoa == 0) {
 
 // Verifica se um arquivo foi enviado
 if (!empty($_FILES['ce_arquivo']['name'])) {
+    $validacao = upload_seguro_validar($_FILES['ce_arquivo'], ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']);
+    if ($validacao !== true) {
+        $conn = null;
+        die(json_encode(['status' => false, 'msg' => "<div class='alert alert-danger'><strong>ERRO!</strong> $validacao</div>"]));
+    }
     $file = $_FILES['ce_arquivo'];
 
     // Obtendo informações do arquivo

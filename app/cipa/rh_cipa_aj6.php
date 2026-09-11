@@ -14,6 +14,7 @@ if ($dados) {
     include_once "../includes/conexao_gerar.php";
     include_once "../includes/f_logs.php";
     include_once "../includes/f_linha_do_tempo.php";
+    include_once "../includes/f_upload_seguro.php";
     //
     $criado_por = $_SESSION['nmLogin'];
     $idLogin = $_SESSION['idLogin'];
@@ -111,6 +112,11 @@ try {
         // Atualização bem-sucedida
 
         if (isset($_FILES['fotoAlt']) && $_FILES['fotoAlt']['error'] === UPLOAD_ERR_OK) {
+            $validacao = upload_seguro_validar($_FILES['fotoAlt'], ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']);
+            if ($validacao !== true) {
+                $conn = null;
+                die(json_encode(["status" => false, "msg" => $validacao]));
+            }
             //
             $fotoTmp = $_FILES['fotoAlt']['tmp_name'];
             $ext = pathinfo($_FILES['fotoAlt']['name'], PATHINFO_EXTENSION);

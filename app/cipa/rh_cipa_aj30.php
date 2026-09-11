@@ -16,6 +16,7 @@ if ($dados) {
     include_once "../includes/conexao_gerar.php";
     include_once "../includes/f_logs.php";
     include_once "../includes/f_linha_do_tempo.php";
+    include_once "../includes/f_upload_seguro.php";
     //
     $idEmpresa = $_SESSION['idEmpresa'];
     $idLogin   = $_SESSION['idLogin'];
@@ -94,6 +95,11 @@ if ($dados) {
 
 // Verifica se o arquivo foi enviado
 if (isset($_FILES['documento_edit']) && $_FILES['documento_edit']['error'] === UPLOAD_ERR_OK) {
+    $validacao = upload_seguro_validar($_FILES['documento_edit'], ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx']);
+    if ($validacao !== true) {
+        $conn = null;
+        die(json_encode(["status" => false, "msg" => $validacao]));
+    }
     //
     // Diretório onde o arquivo será salvo
     $dirDestino = "../docs/cipa"; // Ajuste o caminho conforme necessário
@@ -123,12 +129,18 @@ if (isset($_FILES['documento_edit']) && $_FILES['documento_edit']['error'] === U
         $texto_ocr = "$nomeOriginal | " . addslashes($texto_ocr);
         //
         //
-        $sql = "UPDATE rh_documentos SET arquivo = '$nomeSeguro', 
-                    nome_original='$nomeOriginal', 
-                    ocr = '$texto_ocr', extensao = '$ext', tamanho= $tamanho 
-                    WHERE idDoc = $idDoc";
+        $sql = "UPDATE rh_documentos SET arquivo = :arquivo,
+                    nome_original = :nome_original,
+                    ocr = :ocr, extensao = :extensao, tamanho = :tamanho
+                    WHERE idDoc = :idDoc";
         //debug( $sql );
         $stmt = $conn->prepare($sql);
+        $stmt->bindParam(':arquivo', $nomeSeguro);
+        $stmt->bindParam(':nome_original', $nomeOriginal);
+        $stmt->bindParam(':ocr', $texto_ocr);
+        $stmt->bindParam(':extensao', $ext);
+        $stmt->bindParam(':tamanho', $tamanho);
+        $stmt->bindParam(':idDoc', $idDoc);
         $stmt->execute();
         //
         //- EXCLUI ARQUIVO ANTERIOR

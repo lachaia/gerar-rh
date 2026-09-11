@@ -49,6 +49,7 @@ $idCurso = (int) $idCurso;
 
     include_once "../app/includes/conexao_gerar.php";
     include_once "../app/includes/f_logs.php";
+    include_once "../app/includes/f_upload_seguro.php";
 
 //- pessoa_id vem só da sessão aberta em auth.php - nunca de parâmetro do cliente.
 if (empty($_SESSION['candidato_idPessoa'])) {
@@ -78,6 +79,11 @@ $dados_old = implode(", ", $linha);
 $idDocOld = $linha['idDoc'];
 
 if (isset($_FILES['arquivo']) && $_FILES['arquivo']['error'] === UPLOAD_ERR_OK) {
+    $validacao = upload_seguro_validar($_FILES['arquivo'], ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']);
+    if ($validacao !== true) {
+        $conn = null;
+        die(json_encode(["status" => false, "msg" => $validacao]));
+    }
     // Habemos Files
     $arquivo = $_FILES['arquivo'];
     //
@@ -130,8 +136,9 @@ if (isset($_FILES['arquivo']) && $_FILES['arquivo']['error'] === UPLOAD_ERR_OK) 
     // - Exclui arquivo anterior, já que substitui
     //
     if ($idDocOld > 0) {
-        $sql = "DELETE FROM rh_documentos WHERE idDoc = $idDocOld";
+        $sql = "DELETE FROM rh_documentos WHERE idDoc = :idDoc";
         $stmt = $conn->prepare($sql);
+        $stmt->bindParam(':idDoc', $idDocOld, PDO::PARAM_INT);
         $stmt->execute();
         //
         $arquivo = "../app/docs/pessoa_$idPessoa/" . $linha['arquivo'];

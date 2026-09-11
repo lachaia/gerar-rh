@@ -16,6 +16,7 @@ if (!isset($_SESSION['idLogin'])) {
 }
 
 include_once "../includes/conexao_gerar.php";
+include_once "../includes/f_upload_seguro.php";
 
 $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
 $idPessoa = filter_input(INPUT_POST, 'alt_termo_idPessoa', FILTER_VALIDATE_INT);
@@ -147,6 +148,11 @@ try {
     }
 
     if (isset($_FILES['alt_termo_arquivo']) && $_FILES['alt_termo_arquivo']['error'] === UPLOAD_ERR_OK) {
+        $validacao = upload_seguro_validar($_FILES['alt_termo_arquivo'], ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']);
+        if ($validacao !== true) {
+            throw new Exception($validacao);
+        }
+
         $sqlPessoaTermo = "SELECT idPessoa FROM rh_equip_termos WHERE id = :id LIMIT 1";
         $stmtPessoaTermo = $conn->prepare($sqlPessoaTermo);
         $stmtPessoaTermo->bindValue(':id', $id, PDO::PARAM_INT);

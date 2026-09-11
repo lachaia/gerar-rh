@@ -52,8 +52,15 @@ if (isset($_SESSION['idLogin'])) {
     include_once "../includes/conexao_gerar.php";
     include_once "../includes/f_logs.php";
     include_once "../includes/f_linha_do_tempo.php";
+    include_once "../includes/f_upload_seguro.php";
 } else {
     header("location: logout.php");
+    exit();
+}
+
+$validacao = upload_seguro_validar($_FILES['arquivo_ctps'], ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']);
+if ($validacao !== true) {
+    die(json_encode(["status" => 0, "msg" => $validacao]));
 }
 
 $sql = "SELECT P.nome as nmPessoa, ifnull(C.arquivo_ctps,'') as nmArquivo 
@@ -86,8 +93,10 @@ if (!empty($nmArquivo)) {
     if (file_exists($arquivoAntigo)) {
         unlink($arquivoAntigo); // Apaga o antigo
     }
-    $sql = "DELETE FROM rh_documentos WHERE idPessoa = $idPessoa AND arquivo like '$nmArquivo'";
+    $sql = "DELETE FROM rh_documentos WHERE idPessoa = :idPessoa AND arquivo like :nmArquivo";
     $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':idPessoa', $idPessoa, PDO::PARAM_INT);
+    $stmt->bindParam(':nmArquivo', $nmArquivo, PDO::PARAM_STR);
     $stmt->execute();
     $substituido = 1;
 }

@@ -16,12 +16,19 @@ app/chaves/
 
 # ============================================================
 # Dados reais de colaboradores/candidatos (PII) — nunca versionar
+# (o .htaccess de cada pasta é a exceção: precisa ir para o git,
+# é ele que bloqueia execução de PHP dentro da pasta de upload)
 # ============================================================
-app/docs/
-app/temp/
-app/includes/uploads/
-app/ponto/uploads/
-recrutamento/docs/
+app/docs/*
+!app/docs/.htaccess
+app/temp/*
+!app/temp/.htaccess
+app/includes/uploads/*
+!app/includes/uploads/.htaccess
+app/ponto/uploads/*
+!app/ponto/uploads/.htaccess
+recrutamento/docs/*
+!recrutamento/docs/.htaccess
 usu_*.png
 usu_*.jpg
 usu_*.jpeg

@@ -14,6 +14,7 @@ if (!isset($_SESSION['idLogin'])) {
     exit();
 } else {
     include_once "conexao_gerar.php";
+    include_once "f_upload_seguro.php";
     //
     $idUsuario = $_SESSION['idUsuario'];
     $idLogin   = $_SESSION['idLogin'  ];
@@ -52,13 +53,19 @@ die(json_encode(["status" => true, "msg" => $mensagemSucesso]));
 //    
 
 if (!empty($_FILES['doc_arquivo']['tmp_name'])) {
+    $validacao = upload_seguro_validar($_FILES['doc_arquivo'], ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx']);
+    if ($validacao !== true) {
+        $conn = null;
+        die(json_encode(["status" => false, "msg" => $validacao]));
+    }
+
     // Diretório para salvar o anexo
     //- D:\xampp\htdocs\rh\includes/docs/pessoa_1/doc_250612142553_684b0da1d6ddc.pdf
     $diretorio = "../docs/pessoa_$idPessoa";
 
     // nome único para o arquivo
     $nome_original = $_FILES['doc_arquivo']['name'];
-    $extensao = pathinfo($nome_original, PATHINFO_EXTENSION);
+    $extensao = strtolower(pathinfo($nome_original, PATHINFO_EXTENSION));
     $arquivo = "doc_" . date("ymdHis") . "_" . uniqid() . "." . $extensao;
     $file_tmp = $_FILES['doc_arquivo']['tmp_name'];
     $tamanho = $_FILES['doc_arquivo']['size']; // Tamanho do arquivo em bytes
@@ -83,15 +90,25 @@ if (!empty($_FILES['doc_arquivo']['tmp_name'])) {
 
     $texto_ocr = "$nome_original | " . addslashes($texto_ocr); 
     //
-    $sql = "INSERT INTO rh_documentos (idEmpresa, idPessoa, idTipoDoc, data, descricao, data_validade, arquivo, nome_original, ocr, 
+    $sql = "INSERT INTO rh_documentos (idEmpresa, idPessoa, idTipoDoc, data, descricao, data_validade, arquivo, nome_original, ocr,
                 tags, extensao, tamanho, status, idLoginAprova, origem)
-                values    ($idEmpresa, $idPessoa, $idTipo, :data, :descricao, :data, '$arquivo', '$nome_original', '$texto_ocr', 
-                :tags, '$extensao', '$tamanho', 1, $idLogin, 'GED')";
+                values    (:idEmpresa, :idPessoa, :idTipo, :data, :descricao, :data2, :arquivo, :nome_original, :texto_ocr,
+                :tags, :extensao, :tamanho, 1, :idLogin, 'GED')";
     //
     $stmt_files = $conn->prepare($sql);
-    $stmt_files->bindParam('descricao', $doc_descricao, PDO::PARAM_STR);
-    $stmt_files->bindParam('data',      $dataDoc,       PDO::PARAM_STR);
-    $stmt_files->bindParam('tags',      $tags,          PDO::PARAM_STR);
+    $stmt_files->bindParam('idEmpresa',     $idEmpresa);
+    $stmt_files->bindParam('idPessoa',      $idPessoa);
+    $stmt_files->bindParam('idTipo',        $idTipo);
+    $stmt_files->bindParam('descricao',     $doc_descricao, PDO::PARAM_STR);
+    $stmt_files->bindParam('data',          $dataDoc,       PDO::PARAM_STR);
+    $stmt_files->bindParam('data2',         $dataDoc,       PDO::PARAM_STR);
+    $stmt_files->bindParam('arquivo',       $arquivo,       PDO::PARAM_STR);
+    $stmt_files->bindParam('nome_original', $nome_original, PDO::PARAM_STR);
+    $stmt_files->bindParam('texto_ocr',     $texto_ocr,     PDO::PARAM_STR);
+    $stmt_files->bindParam('tags',          $tags,          PDO::PARAM_STR);
+    $stmt_files->bindParam('extensao',      $extensao,      PDO::PARAM_STR);
+    $stmt_files->bindParam('tamanho',       $tamanho);
+    $stmt_files->bindParam('idLogin',       $idLogin);
     $stmt_files->execute();
 
     if (!$stmt_files) {
@@ -104,9 +121,15 @@ if (!empty($_FILES['doc_arquivo']['tmp_name'])) {
     //
     //- REGISTRA LOG 
     //
-    $sql = "INSERT INTO rh_logs (idLogin, dtOper, oper, historico, tabela, idModulo, idOperacao) 
-                    VALUES ($idLogin, '$agora', 'INC', 'Inserido documentos $nome_original de $nmPessoa', 'rh_docs', $idModulo, $idDoc)";
+    $historico = "Inserido documentos $nome_original de $nmPessoa";
+    $sql = "INSERT INTO rh_logs (idLogin, dtOper, oper, historico, tabela, idModulo, idOperacao)
+                    VALUES (:idLogin, :agora, 'INC', :historico, 'rh_docs', :idModulo, :idDoc)";
     $stmt = $conn->prepare($sql);
+    $stmt->bindParam('idLogin', $idLogin);
+    $stmt->bindParam('agora', $agora);
+    $stmt->bindParam('historico', $historico);
+    $stmt->bindParam('idModulo', $idModulo);
+    $stmt->bindParam('idDoc', $idDoc);
     $stmt->execute();
 
     include_once "f_logs.php";

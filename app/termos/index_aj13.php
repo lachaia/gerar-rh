@@ -11,6 +11,7 @@ if (isset($parametros)) extract($parametros);
 
 include_once "../includes/conexao_gerar.php";
 include_once "../includes/debug.php";
+include_once "../includes/f_upload_seguro.php";
 debug(json_encode($parametros, JSON_PRETTY_PRINT));
 
 $retorno = [
@@ -43,7 +44,12 @@ extract( $dados );
 // Verifica se enviou arquivo
 //
 if (isset($_FILES['termo_arquivo_bxa']) && $_FILES['termo_arquivo_bxa']['error'] == UPLOAD_ERR_OK) {
-    
+    $validacao = upload_seguro_validar($_FILES['termo_arquivo_bxa'], ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']);
+    if ($validacao !== true) {
+        $conn = null;
+        die(json_encode(["status" => false, "msg" => $validacao]));
+    }
+
     $idPessoa = (int) $idPessoa; // já deve estar definido no seu código
     $idTermo  = (int) $id;       // id do termo
     

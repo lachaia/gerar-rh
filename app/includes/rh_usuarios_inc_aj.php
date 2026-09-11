@@ -14,6 +14,7 @@ if (!isset($_SESSION['idLogin'])) {
 include_once "../includes/conexao_gerar.php";
 include_once "../includes/f_logs.php";
 include_once "../includes/f_linha_do_tempo.php";
+include_once "../includes/f_upload_seguro.php";
 //
 
 $dados = filter_input_array(INPUT_POST, FILTER_DEFAULT);
@@ -102,10 +103,15 @@ try {
 }
 
 if (isset($_FILES["foto"]) && $_FILES["foto"]["error"] == UPLOAD_ERR_OK) {
+    $validacao = upload_seguro_validar($_FILES['foto'], ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']);
+    if ($validacao !== true) {
+        $conn = null;
+        die(json_encode(["status" => false, "msg" => $validacao]));
+    }
     //
     $nomeTemporario = $_FILES["foto"]["tmp_name"];
     $nomeArquivo = $_FILES["foto"]["name"];
-    $extensao = pathinfo($nomeArquivo,PATHINFO_EXTENSION);
+    $extensao = strtolower(pathinfo($nomeArquivo,PATHINFO_EXTENSION));
     $novoNome = "usu_" . str_pad($idUsuario, 6, "0", STR_PAD_LEFT) . "." . $extensao;
     $caminhoDestino = "../fotos/" . $novoNome;
     //
@@ -115,8 +121,10 @@ if (isset($_FILES["foto"]) && $_FILES["foto"]["error"] == UPLOAD_ERR_OK) {
     //
     if (move_uploaded_file($nomeTemporario, $caminhoDestino)) {
         // O arquivo foi movido com sucesso, você pode continuar o processamento aqui
-        $sql = "UPDATE rh_usuarios SET foto = '$novoNome' WHERE idUsuario = $idUsuario";
+        $sql = "UPDATE rh_usuarios SET foto = :foto WHERE idUsuario = :idUsuario";
         $stmt = $conn->prepare( $sql );
+        $stmt->bindParam(':foto', $novoNome);
+        $stmt->bindParam(':idUsuario', $idUsuario);
         $result = $stmt->execute();
 
         // Envie uma resposta JSON de sucesso

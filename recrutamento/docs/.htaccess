@@ -1,9 +1,4 @@
-<IfModule mod_headers.c>
-    Header set Cross-Origin-Resource-Policy "cross-origin"
-    Header set Access-Control-Allow-Origin "*"
-</IfModule>
-
-# Pasta de fotos enviadas por usuários — nunca deve executar scripts.
+# Pasta de documentos enviados por usuários — nunca deve executar scripts.
 <IfModule mod_php.c>
     php_flag engine off
 </IfModule>
@@ -11,11 +6,14 @@
     php_flag engine off
 </IfModule>
 
+# Apache 2.4+
 <IfModule mod_authz_core.c>
     <FilesMatch "\.(php|php[3-8]?|phtml|phar|cgi|pl|py|sh|asp|aspx|exe)$">
         Require all denied
     </FilesMatch>
 </IfModule>
+
+# Apache 2.2 (fallback)
 <IfModule !mod_authz_core.c>
     <FilesMatch "\.(php|php[3-8]?|phtml|phar|cgi|pl|py|sh|asp|aspx|exe)$">
         Order allow,deny

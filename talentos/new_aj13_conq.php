@@ -47,6 +47,7 @@ if (empty($idConqTipo) || empty($ano) || empty($titulo) || empty($descricao)) {
 
     include_once "../app/includes/conexao_gerar.php";
     include_once "../app/includes/f_logs.php";
+    include_once "../app/includes/f_upload_seguro.php";
 
 //- idPessoa vem da sessão - nunca de um campo do cliente, senão dá pra incluir
 //- conquista/certificado no currículo de qualquer pessoa só sabendo o idPessoa dela.
@@ -67,6 +68,11 @@ $idPessoa = (int) $_SESSION['candidato_idPessoa'];
 // Upload do certificado (se enviado)
 $caminho_arquivo = null;
 if (isset($_FILES['arquivoCert']) && $_FILES['arquivoCert']['error'] === UPLOAD_ERR_OK) {
+    $validacao = upload_seguro_validar($_FILES['arquivoCert'], ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']);
+    if ($validacao !== true) {
+        $conn = null;
+        die(json_encode(["status" => false, "msg" => $validacao]));
+    }
     //
     $arquivo = $_FILES['arquivoCert'];
     //

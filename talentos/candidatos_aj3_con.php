@@ -52,6 +52,7 @@ $idConq = (int) $idConq;
 
     include_once "../app/includes/conexao_gerar.php";
     include_once "../app/includes/f_logs.php";
+    include_once "../app/includes/f_upload_seguro.php";
 
 //- pessoa_id vem só da sessão aberta em auth.php - nunca de parâmetro do cliente
 //- (o valor antigo "idPessoa" vindo no POST era só confiado, sem checar dono do registro).
@@ -85,6 +86,11 @@ $idDocOld = $linha['idDoc'];
 //
 
 if (isset($_FILES['arquivoCert']) && $_FILES['arquivoCert']['error'] === UPLOAD_ERR_OK) {
+    $validacao = upload_seguro_validar($_FILES['arquivoCert'], ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']);
+    if ($validacao !== true) {
+        $conn = null;
+        die(json_encode(["status" => false, "msg" => $validacao]));
+    }
     // Habemos Files
     $arquivo = $_FILES['arquivoCert'];
     //
@@ -137,8 +143,9 @@ if (isset($_FILES['arquivoCert']) && $_FILES['arquivoCert']['error'] === UPLOAD_
     // - Exclui arquivo anterior, já que substitui
     //
     if ($idDocOld > 0) {
-        $sql = "DELETE FROM rh_documentos WHERE idDoc = $idDocOld";
+        $sql = "DELETE FROM rh_documentos WHERE idDoc = :idDoc";
         $stmt = $conn->prepare($sql);
+        $stmt->bindParam(':idDoc', $idDocOld, PDO::PARAM_INT);
         $stmt->execute();
         //
         $arquivo = "../app/docs/pessoa_$idPessoa/" . $linha['arquivo'];

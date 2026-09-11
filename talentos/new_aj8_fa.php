@@ -46,6 +46,7 @@ if( ! isset($curso) || empty( $idInstituicao ) || empty( $idNivel ) || empty( $a
     if( isset($_SESSION['idEmpresa']) ) $idEmpresa = $_SESSION['idEmpresa']; else $idEmpresa = 1;
     include_once "../app/includes/conexao_gerar.php";
     include_once "../app/includes/f_logs.php";
+    include_once "../app/includes/f_upload_seguro.php";
 
 //- idPessoa vem da sessão - nunca de um campo do cliente, senão dá pra incluir
 //- formação no currículo de qualquer pessoa só sabendo o idPessoa dela.
@@ -60,8 +61,13 @@ $idPessoa = (int) $_SESSION['candidato_idPessoa'];
 // Upload do DIPLOMA (se enviado)
 $caminho_arquivo = null;
 if (isset($_FILES['arquivo']) && $_FILES['arquivo']['error'] === UPLOAD_ERR_OK) {
+    $validacao = upload_seguro_validar($_FILES['arquivo'], ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']);
+    if ($validacao !== true) {
+        $conn = null;
+        die(json_encode(["status" => false, "msg" => $validacao]));
+    }
     $arquivo = $_FILES['arquivo'];
-    
+
     // 1. Defina o caminho da pasta
     $uploadDir = "../app/docs/pessoa_$idPessoa/";
     

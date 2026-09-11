@@ -16,6 +16,7 @@ if( $dados ){
     include_once "../includes/conexao_gerar.php";
     include_once "../includes/f_logs.php";
     include_once "../includes/f_linha_do_tempo.php";
+    include_once "../includes/f_upload_seguro.php";
     //
     $criado_por = $_SESSION['nmLogin'];
     $idLogin = $_SESSION['idLogin'];
@@ -150,6 +151,11 @@ try {
 
             // Verifica se o arquivo foi enviado
             if (isset($_FILES['acao_arquivo']) && $_FILES['acao_arquivo']['error'] === UPLOAD_ERR_OK) {
+                $validacao = upload_seguro_validar($_FILES['acao_arquivo'], ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']);
+                if ($validacao !== true) {
+                    $conn = null;
+                    die(json_encode(["status" => false, "msg" => $validacao]));
+                }
                 $arquivoTmp = $_FILES['acao_arquivo']['tmp_name'];
                 $nomeOriginal = basename($_FILES['acao_arquivo']['name']);
 
