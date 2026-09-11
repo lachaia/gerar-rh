@@ -23,11 +23,11 @@ if( isset( $parametros )){
 
 include "conexao_gerar.php";
 
-//- Pesquisa se existe o e-mail na Base de dados
-$sql = "SELECT P.email_corporativo as email, login, idUsuario 
-            FROM rh_usuarios U 
+//- Pesquisa se existe o e-mail na Base de dados (idEmpresa vem do próprio registro, nunca do cliente)
+$sql = "SELECT P.email_corporativo as email, login, idUsuario, U.idEmpresa
+            FROM rh_usuarios U
             INNER JOIN rh_pessoas P on P.idPessoa = U.idPessoa
-            WHERE P.email_corporativo like :email and U.idEmpresa = $idEmpresa";
+            WHERE P.email_corporativo like :email";
 $stmt = $conn->prepare($sql);
 $stmt->bindParam(':email', $email, PDO::PARAM_STR);
 $stmt->execute();
@@ -41,13 +41,15 @@ if (! $stmt->rowCount() > 0) {
     $conn = null;
     die(json_encode($retorna, JSON_PRETTY_PRINT));
 } else {
-    //- cria o token
+    //- cria o token (segredo aleatório, não sequencial)
     extract($dados);
+    $tokenSecreto = bin2hex(random_bytes(32));
     $data_solicitacao = date("Y-m-d H:i:s");
-    $sql = "INSERT INTO rh_token (idEmpresa, idUsuario, email, login, data_solicitacao, tipo) 
-    VALUES (:idEmpresa, :idUsuario, :email, :login, :data_solicitacao, 1)";
+    $sql = "INSERT INTO rh_token (token, idEmpresa, idUsuario, email, login, data_solicitacao, tipo)
+    VALUES (:token, :idEmpresa, :idUsuario, :email, :login, :data_solicitacao, 1)";
     $stmt = $conn->prepare($sql);
 
+    $stmt->bindParam(':token', $tokenSecreto, PDO::PARAM_STR);
     $stmt->bindParam(':idEmpresa', $idEmpresa, PDO::PARAM_INT);
     $stmt->bindParam(':idUsuario', $idUsuario, PDO::PARAM_INT);
     $stmt->bindParam(':email', $email, PDO::PARAM_STR);
@@ -55,9 +57,6 @@ if (! $stmt->rowCount() > 0) {
     $stmt->bindParam(':data_solicitacao', $data_solicitacao, PDO::PARAM_STR);
 
     $stmt->execute();
-
-    // Obtém o último ID inserido
-    $idToken = $conn->lastInsertId();
 }
 
 //- envia o link para e-Mail
@@ -78,7 +77,7 @@ $mail->setFrom($emailFrom, $nmFrom);
 
 $mail->addAddress($email, $login);   // Add a recipient 
 
-$resetLink = "https://rh.gerar.org.br/includes/reset_senha.php?token=$idToken"; // Substitua pelo link real
+$resetLink = "https://rh.gerar.org.br/includes/reset_senha.php?token=$tokenSecreto"; // Substitua pelo link real
 
 $html = "
     <p>Olá, <strong>$login</strong>,</p>

@@ -20,16 +20,6 @@ com todos os valores vindos direto do POST, sem bind. **Qualquer pessoa na inter
 
 **Ação:** corrigir agora — adicionar `isset($_SESSION['idLogin']) && $_SESSION['idGrupo'] == 9` (ou o grupo apropriado) + `exit()` no topo de todos os `rh_usuario*_aj*.php`, e usar bind de parâmetro em todas as queries.
 
-### 3. Reset de senha sem validar o token — `app/includes/reset_senha_aj.php` (alcançável por `talentos/esqueci_senha.php`)
-```php
-$idUsuario = filter_input(INPUT_POST, 'idUsuario', FILTER_SANITIZE_NUMBER_INT);
-$token = filter_input(INPUT_POST, 'token', FILTER_SANITIZE_NUMBER_INT);
-$sql = "UPDATE rh_usuarios SET senha = :senha WHERE idUsuario = :idUsuario";
-```
-O token é aceito mas **nunca comparado contra `rh_token`** antes da troca de senha — só é usado depois, para registrar `data_reset`. Como `idUsuario` é um inteiro sequencial pequeno, dá para trocar a senha de qualquer conta (`idUsuario=1,2,3...`) sem e-mail, sem token, sem login algum. Some a isso: `talentos/esqueci_senha.php` monta a busca do usuário com `idEmpresa` vindo cru do POST via `extract()`, concatenado sem bind — SQL Injection adicional no mesmo fluxo, e o próprio token de reset gerado ali é só um `lastInsertId()` sequencial (não é segredo).
-
-**Ação:** validar o token contra `rh_token` (existência + não expirado + não usado) **antes** do UPDATE de senha, com bind de parâmetro em toda a query, e gerar o token com `random_bytes()`.
-
 ### 4. Upload de arquivo sem whitelist de extensão + zero proteção contra execução de PHP nas pastas
 Confirmado em **~30 endpoints** (amostra: `app/includes/rh_perfil_aj.php`, `rh_usuarios_inc_aj.php`, `rh_pessoa_aj4/7/13.php`, `rh_colab_aj3/4.php`, `rh_docs_inc_aj.php`, `app/brigada/rh_brigada_aj3/6/15/18/20/22/27/30.php`, `app/cipa/rh_cipa_aj3/6/15/20/27/30.php`, `app/termos/index_aj10/13/16.php` — e, mais grave, **`talentos/candidatos_aj1_fa.php`, `candidatos_aj3_con.php`, `new_aj8_fa.php`, `new_aj13_conq.php`**, que são acessíveis por **candidatos externos anônimos**): a extensão do arquivo é lida do nome enviado pelo cliente e usada para montar o nome final salvo, sem checar contra uma whitelist.
 

@@ -8,21 +8,23 @@ session_start();
 
 include "conexao_gerar.php"; // Arquivo de conexão com o banco
 
-$token = filter_input(INPUT_GET, 'token', FILTER_SANITIZE_STRING);
+$token = filter_input(INPUT_GET, 'token');
 
-if (!$token) {
+if (!$token || !ctype_xdigit($token) || strlen($token) !== 64) {
     die("Token inválido ou ausente!");
 }
 
-// Busca o idUsuario na tabela rh_token
-$sql = "SELECT idUsuario FROM rh_token WHERE idToken = :token";
+// Busca o idUsuario na tabela rh_token — valida tipo, uso único e validade (60 min)
+$sql = "SELECT idUsuario FROM rh_token
+        WHERE token = :token AND tipo = 1 AND data_reset IS NULL
+        AND data_solicitacao >= (NOW() - INTERVAL 60 MINUTE)";
 $stmt = $conn->prepare($sql);
 $stmt->bindParam(":token", $token, PDO::PARAM_STR);
 $stmt->execute();
 $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$result) {
-    die("Token inválido ou expirado!");
+    die("Token inválido, expirado ou já utilizado!");
 }
 
 $idUsuario = $result['idUsuario'];

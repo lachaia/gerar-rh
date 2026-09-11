@@ -1873,6 +1873,7 @@ CREATE TABLE `rh_termos_tipos` (
 DROP TABLE IF EXISTS `rh_token`;
 CREATE TABLE `rh_token` (
   `idToken` int NOT NULL AUTO_INCREMENT,
+  `token` varchar(64) DEFAULT NULL,
   `idEmpresa` int DEFAULT NULL,
   `idUsuario` int DEFAULT NULL,
   `email` varchar(250) DEFAULT NULL,
@@ -1880,7 +1881,8 @@ CREATE TABLE `rh_token` (
   `data_solicitacao` datetime DEFAULT NULL,
   `data_reset` datetime DEFAULT NULL,
   `tipo` smallint DEFAULT '1',
-  PRIMARY KEY (`idToken`)
+  PRIMARY KEY (`idToken`),
+  UNIQUE KEY `uk_rh_token_token` (`token`)
 ) ENGINE=InnoDB AUTO_INCREMENT=135 DEFAULT CHARSET=utf8mb3 COMMENT='Cria os tokens para reset de senha';
 
 -- ----------------------------
