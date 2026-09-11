@@ -7,14 +7,29 @@ session_start();
 
 include_once("conexao_gerar.php");
 
-if (isset($_GET['id']) || isset($_GET['token'])) {
+if (isset($_GET['id']) && isset($_GET['token'])) {
     $id = $_GET['id'];
     $token = $_GET['token'];
 } else {
     die("<h1>Faltou parâmetros</h1>");
 }
 
-$sql = "SELECT * 
+if (!ctype_xdigit($token) || strlen($token) !== 64) {
+    die("<h1>Token inválido ou ausente</h1>");
+}
+
+// Valida o token: existe, é do tipo "solicitação de cadastro", não expirou (60 min) e não foi usado.
+$sqlTok = "SELECT idToken FROM rh_token
+           WHERE token = :token AND tipo = 2 AND data_reset IS NULL
+           AND data_solicitacao >= (NOW() - INTERVAL 60 MINUTE)";
+$stmtTok = $conn->prepare($sqlTok);
+$stmtTok->bindParam(':token', $token, PDO::PARAM_STR);
+$stmtTok->execute();
+if (!$stmtTok->fetch(PDO::FETCH_ASSOC)) {
+    die("<h1>Token inválido, expirado ou já utilizado</h1>");
+}
+
+$sql = "SELECT *
         FROM rh_colaboradores C
         INNER JOIN rh_pessoas P on P.idPessoa = C.idPessoa
         where idColab = :id";

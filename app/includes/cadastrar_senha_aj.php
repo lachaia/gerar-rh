@@ -10,7 +10,7 @@ $idModulo = 1; // USUÁRIOS
 $parametros = filter_input_array(INPUT_POST, FILTER_DEFAULT);
 if( $parametros ) extract( $parametros);
 
-if ( empty($idColab) || empty($login) || empty($senha) ) {
+if ( empty($idColab) || empty($login) || empty($senha) || empty($token) ) {
     $retorno = [
         "status" => false,
         "msg" => '<div class="alert alert-danger">
@@ -18,6 +18,10 @@ if ( empty($idColab) || empty($login) || empty($senha) ) {
             </div>'
     ];
     die(json_encode($retorno));
+}
+
+if ( !ctype_xdigit($token) || strlen($token) !== 64 ) {
+    die(json_encode(["status" => false, "msg" => "Token inválido!"]));
 }
 /*
 include "debug.php";
@@ -38,10 +42,20 @@ include_once("conexao_gerar.php");
 
 $agora = date("Y-m-d H:i:s");
 
-$sql = "UPDATE rh_token SET data_reset = '$agora' WHERE idToken = :idToken";
-$consulta = $conn->prepare($sql);
-$consulta->bindParam(':idToken', $idToken );
-$consulta->execute();
+// Valida o token: existe, é do tipo "solicitação de cadastro", não expirou (60 min) e não foi usado.
+$sqlTok = "SELECT idToken FROM rh_token
+           WHERE token = :token AND tipo = 2 AND data_reset IS NULL
+           AND data_solicitacao >= (NOW() - INTERVAL 60 MINUTE)";
+$stmtTok = $conn->prepare($sqlTok);
+$stmtTok->bindParam(':token', $token, PDO::PARAM_STR);
+$stmtTok->execute();
+$linhaToken = $stmtTok->fetch(PDO::FETCH_ASSOC);
+
+if (!$linhaToken) {
+    die(json_encode(["status" => false, "msg" => "Token inválido, expirado ou já utilizado!"]));
+}
+
+$idToken = $linhaToken['idToken'];
 
 //-- verifica se usuário já existe
 //
@@ -71,6 +85,11 @@ $consulta = $conn->prepare($sql);
 $consulta->bindParam(':idColab', $idColab );
 $consulta->execute();
 $linha = $consulta->fetch(PDO::FETCH_ASSOC);
+
+if (!$linha) {
+    die(json_encode(["status" => false, "msg" => "Colaborador não encontrado!"]));
+}
+
 extract( $linha );
 
 $senhaHash = password_hash($senha, PASSWORD_DEFAULT);
@@ -90,6 +109,13 @@ $consulta->bindParam(':ativo', $ativo );
 $consulta->bindParam(':idSubSede', $idSubSede );
 // 
 if( $consulta->execute() ){
+    // Marca o token como usado (impede reaproveitar o mesmo link)
+    $sqlMarcaToken = "UPDATE rh_token SET data_reset = :agora WHERE idToken = :idToken";
+    $consultaToken = $conn->prepare($sqlMarcaToken);
+    $consultaToken->bindParam(':agora', $agora, PDO::PARAM_STR);
+    $consultaToken->bindParam(':idToken', $idToken, PDO::PARAM_INT);
+    $consultaToken->execute();
+
     $retorno = [
         "status"=> true,
         "msg"=> "Usuário criado com sucesso!"
