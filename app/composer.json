@@ -10,6 +10,7 @@
         "phpoffice/phppresentation": "^1.0",
         "aspose/slides-sdk-php": "^24.6",
         "google/apiclient": "^2.17",
-        "drewlabs/php-dompdf": "^0.9.0"
+        "drewlabs/php-dompdf": "^0.9.0",
+        "vlucas/phpdotenv": "^5.7"
     }
 }
