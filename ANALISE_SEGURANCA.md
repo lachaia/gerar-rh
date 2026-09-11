@@ -20,15 +20,6 @@ com todos os valores vindos direto do POST, sem bind. **Qualquer pessoa na inter
 
 **Ação:** corrigir agora — adicionar `isset($_SESSION['idLogin']) && $_SESSION['idGrupo'] == 9` (ou o grupo apropriado) + `exit()` no topo de todos os `rh_usuario*_aj*.php`, e usar bind de parâmetro em todas as queries.
 
-### 4. Upload de arquivo sem whitelist de extensão + zero proteção contra execução de PHP nas pastas
-Confirmado em **~30 endpoints** (amostra: `app/includes/rh_perfil_aj.php`, `rh_usuarios_inc_aj.php`, `rh_pessoa_aj4/7/13.php`, `rh_colab_aj3/4.php`, `rh_docs_inc_aj.php`, `app/brigada/rh_brigada_aj3/6/15/18/20/22/27/30.php`, `app/cipa/rh_cipa_aj3/6/15/20/27/30.php`, `app/termos/index_aj10/13/16.php` — e, mais grave, **`talentos/candidatos_aj1_fa.php`, `candidatos_aj3_con.php`, `new_aj8_fa.php`, `new_aj13_conq.php`**, que são acessíveis por **candidatos externos anônimos**): a extensão do arquivo é lida do nome enviado pelo cliente e usada para montar o nome final salvo, sem checar contra uma whitelist.
-
-Ao mesmo tempo, **nenhuma pasta de upload tem `.htaccess` bloqueando execução de PHP** (`app/docs/`, `app/temp/`, `app/includes/uploads/`, `app/ponto/uploads/`, `recrutamento/docs/` — confirmado ausente; o único `.htaccess` existente, em `app/fotos/`, só define headers CORS, não bloqueia execução).
-
-**Resultado: RCE completo**, inclusive por um candidato não autenticado que se cadastra em `talentos/` e envia `shell.php` como "diploma" — o arquivo cai em `app/docs/pessoa_<id>/dipl_<uniqid>.php`, publicamente acessível e executável.
-
-**Ação:** (a) whitelist de extensão + checagem de MIME real (`finfo_file`) em todo `move_uploaded_file()`; (b) `.htaccess` com `php_flag engine off` (ou `<FilesMatch "\.php[0-9]?$"> Require all denied </FilesMatch>`) em **todas** as pastas de upload, sem exceção — isso sozinho neutraliza a maior parte deste item.
-
 ### 5. `app/ocr_gerar.php` — upload não autenticado direto na webroot
 Sem `session_start()`, sem checagem de extensão, salva em `app/temp/` (pasta sem `.htaccess`, hoje cheia de PDFs sensíveis reais). `curl -F "arquivo=@shell.php" .../ocr_gerar.php` é RCE sem login.
 
