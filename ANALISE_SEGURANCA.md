@@ -10,16 +10,6 @@ Os achados estão organizados por severidade. Dentro de cada nível, por categor
 
 ## CRÍTICO — ação imediata
 
-### 2. Takeover de conta sem nenhuma autenticação — `app/includes/rh_usuario_alt_aj.php`
-Não há `session_start()`/checagem de login no arquivo inteiro. Constrói e executa:
-```php
-$sql = "UPDATE rh_usuarios SET idUsuarioGrupo = $idUsuarioGrupo, idPessoa = $idPessoa, ...,
-         senha = '$ksenha' WHERE idUsuario = $idUsuario";
-```
-com todos os valores vindos direto do POST, sem bind. **Qualquer pessoa na internet**, sem login, pode enviar `idUsuario=<alvo>&idUsuarioGrupo=9&senha=<nova>` e virar Super Admin de qualquer conta (inclusive a própria, ou criar uma nova identidade com grupo 9). Endpoints irmãos com o mesmo problema: `rh_usuario_exc_aj.php` (exclui qualquer usuário, sem checagem), `rh_usuario_alt1_aj.php`/`rh_usuarios_con_aj.php` (retornam a linha inteira de `rh_usuarios`, incluindo o hash da senha e `chaveApp`, para qualquer `idUsuario` pedido).
-
-**Ação:** corrigir agora — adicionar `isset($_SESSION['idLogin']) && $_SESSION['idGrupo'] == 9` (ou o grupo apropriado) + `exit()` no topo de todos os `rh_usuario*_aj*.php`, e usar bind de parâmetro em todas as queries.
-
 ### 8. SQL Injection não autenticada em pontos críticos
 - **`app/includes/login_aj2.php`** (linha ~20-28) — a etapa que identifica o usuário **antes** da senha ser validada monta `WHERE login like '%$login%' OR P.cpf like '%$login_cpf%' OR P.email_corporativo like '%$login%'` sem bind. Isso é injeção de SQL **no próprio fluxo de login**, sem exigir credencial alguma.
 - **`app/includes/rh_reajuste_aj1.php`** — sem `session_start()`, `WHERE C.idOrgao = $idOrgao` direto do `$_GET`.
@@ -90,27 +80,29 @@ O token de assinatura (`bin2hex(random_bytes(16))`, gerado corretamente) identif
 
 | Módulo | Sem checagem de sessão | Sem checagem de grupo (`idGrupo`) | SQLi confirmada | Upload sem whitelist |
 |---|---|---|---|---|
-| `app/includes/` (núcleo) | ~15 arquivos (docs, usuários, pessoa, ouvidoria, cv, reajuste) | rh_saude*, rh_rescisao* (só checam sessão) | login_aj2, rh_docs_edt/eml_aj, rh_usuario_alt_aj | rh_perfil_aj, rh_usuarios_inc_aj, rh_pessoa_aj4/7/13, rh_colab_aj3/4, rh_docs_inc_aj |
-| `app/cipa/` | 10 de 31 arquivos | **0 de 31** | 13 arquivos (aj4,12,15,16,18,20,22,23,27,29,30) | aj3,6,15,20,27,30 |
-| `app/brigada/` | 10 de 30 arquivos | **0 de 30** | 7+ arquivos (aj4,12,16,18,22,23,29 + aj15/27/30 com texto livre) | aj3,6,15,18,20,22,27,30 |
-| `app/termos/` | aj9,aj12,aj13,aj14,aj18 | **nenhum** (login próprio existe mas é bypassável pela sessão central) | aj12, aj14 | aj10,aj13,aj16 |
+| `app/includes/` (núcleo) | ~13 arquivos (docs, pessoa, ouvidoria, cv, reajuste) | rh_saude*, rh_rescisao* (só checam sessão) | login_aj2, rh_docs_edt/eml_aj | ~~rh_perfil_aj, rh_usuarios_inc_aj, rh_pessoa_aj4/7/13, rh_colab_aj3/4, rh_docs_inc_aj~~ ✅ corrigido (item 4) |
+| `app/cipa/` | 10 de 31 arquivos | **0 de 31** | aj4,12,16,23,29 (+ SQLi residual em aj15/18/20/22/27/30 fora do trecho de upload/documento) | ~~aj3,6,15,20,27,30~~ ✅ corrigido (item 4) |
+| `app/brigada/` | 10 de 30 arquivos | **0 de 30** | aj4,12,16,23,29 (+ SQLi residual em aj15/18/20/22/27/30 fora do trecho de upload/documento) | ~~aj3,6,15,18,20,22,27,30~~ ✅ corrigido (item 4) |
+| `app/termos/` | aj9,aj12,aj13,aj14,aj18 | **nenhum** (login próprio existe mas é bypassável pela sessão central) | aj12, aj14 | ~~aj10,aj13,aj16~~ ✅ corrigido (item 4) |
 | `app/ponto/` | registrar_ponto, ultimas_batidas(_web), edita_cartao_aj2/3, solicitacoes_aj, localizacao_aj/aj1 | — | cron_banco_horas.php | — |
 | `app/colaborador/` `app/gestor/` | dados_aj1, index_aj1, ferias_aj1 | ficha_colab (sem scope de equipe) | dados_aj4, gestor/ponto_aj | — |
-| `talentos/` | — (padrão de sessão é bem aplicado) | — | esqueci_senha.php (idEmpresa) | candidatos_aj1_fa, candidatos_aj3_con, new_aj8_fa, new_aj13_conq |
+| `talentos/` | — (padrão de sessão é bem aplicado) | — | esqueci_senha.php (idEmpresa) | ~~candidatos_aj1_fa, candidatos_aj3_con, new_aj8_fa, new_aj13_conq~~ ✅ corrigido (item 4) |
 | `recrutamento/` | — | vaga_fluxo_mover_aj, candidato_fluxo_mover_aj, candidato_cv_aj (sem scope de subsede) | — | — |
 | `vagas/` | (público por design, sem PII exposta) | — | — | — |
+
+> Nota: item 4 corrigiu, de brinde, o SQL Injection nas queries de `rh_documentos`/upload logo ao lado do código de upload nos arquivos acima (bind de parâmetro). As demais queries dos **mesmos arquivos** (ex.: `DELETE ... WHERE id = $id` de reunião/ação/membro) **não foram tocadas** e continuam vulneráveis — por isso aj15/18/20/22/27/30 ainda aparecem na coluna de SQLi.
 
 ---
 
 ## Plano de ação sugerido (ordem de prioridade)
 
-1. **Rotacionar todas as credenciais** já commitadas no git (banco, Anthropic, AWS SES, Google) — item independente de qualquer deploy de código.
-2. **Corrigir os 3 endpoints de takeover de conta** (`rh_usuario_alt_aj.php`, `rh_usuario_exc_aj.php`, `reset_senha_aj.php`) — são os de maior impacto individual.
-3. **Bloquear execução de PHP em todas as pastas de upload via `.htaccess`** — uma mudança de infraestrutura pequena que neutraliza a maior parte dos achados de RCE de uma vez.
-4. **Fechar `app/docs/`, `app/temp/`, PDFs de termos para acesso direto** — mover a entrega de arquivo para trás de um script PHP com checagem de sessão/posse.
-5. **Adicionar checagem de `idGrupo` nos módulos CIPA/Brigada/Termos** — hoje é ausência total, não caso a caso.
-6. Revisar sistematicamente os arquivos que usam `extract($_POST)`/`extract($dados)` e trocar por atribuição explícita + bind de parâmetro em toda query.
-7. Adicionar token CSRF (ou pelo menos `SameSite=Strict/Lax` nos cookies de sessão) como camada adicional.
-8. Tratar os demais IDORs (ponto, gestor, ouvidoria, recrutamento) conforme a criticidade do dado exposto em cada caso.
+1. ⬜ **Rotacionar todas as credenciais** já commitadas no git (banco, Anthropic, AWS SES, Google) — item independente de qualquer deploy de código. *(depende de ação fora do repositório — não verificável por código.)*
+2. ✅ ~~Corrigir os 3 endpoints de takeover de conta (`rh_usuario_alt_aj.php`, `rh_usuario_exc_aj.php`, `reset_senha_aj.php`)~~ — feito (itens 2 e 3).
+3. ✅ ~~Bloquear execução de PHP em todas as pastas de upload via `.htaccess`~~ — feito (item 4), incluindo whitelist de extensão + validação de MIME real em todos os endpoints de upload confirmados.
+4. ✅ ~~Fechar `app/docs/` e PDFs de termos para acesso direto~~ — feito (item 7): gateway `docs_view.php` com checagem de sessão/posse + `.htaccess` de negação total. ⚠️ **`app/temp/` continua com o mesmo gap parcial**: o `.htaccess` só bloqueia execução de PHP, não leitura direta de arquivo — os arquivos que ficam ali temporariamente (staging de OCR) ainda são baixáveis por quem adivinhar o nome. Não estava no escopo do item 7.
+5. ⬜ **Adicionar checagem de `idGrupo` nos módulos CIPA/Brigada/Termos** — hoje é ausência total, não caso a caso. *(item 9, ainda não iniciado.)*
+6. ⬜ Revisar sistematicamente os arquivos que usam `extract($_POST)`/`extract($dados)` e trocar por atribuição explícita + bind de parâmetro em toda query. *(item 8 cobre uma parte; o restante segue pendente — ver nota na tabela de módulos sobre SQLi residual em CIPA/Brigada fora do trecho de upload/documento.)*
+7. ⬜ Adicionar token CSRF (ou pelo menos `SameSite=Strict/Lax` nos cookies de sessão) como camada adicional.
+8. ⬜ Tratar os demais IDORs (ponto, gestor, ouvidoria, recrutamento) conforme a criticidade do dado exposto em cada caso.
 
-Nenhuma alteração foi feita no código ou no banco durante esta análise — é só o diagnóstico, para o time priorizar as correções.
+Nenhuma alteração foi feita no código ou no banco durante a análise original — os itens marcados ✅ acima já foram corrigidos e commitados desde então; o restante é o que falta priorizar.
