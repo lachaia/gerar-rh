@@ -18,9 +18,7 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 
-require '../../app/includes/PHPMailer-master/src/Exception.php';
-require '../../app/includes/PHPMailer-master/src/PHPMailer.php';
-require '../../app/includes/PHPMailer-master/src/SMTP.php';
+require_once '../../app/includes/email_config.php';
 
 //- Inclui o arquivo de conexão com o banco de dados
 include "../../app/includes/conexao_gerar.php";
@@ -463,17 +461,8 @@ function envia_emails($conn, $vaga_id)
         //
         //- Envia e-mail para Superintendente
         //
-        $mail = new PHPMailer(true);
+        $mail = criarMailer();
         $mail->SMTPDebug = SMTP::DEBUG_OFF;
-        $mail->isSMTP();
-        $mail->Host       = 'email-smtp.sa-east-1.amazonaws.com';
-        $mail->SMTPAuth   = true;
-        $mail->Username   = 'AKIAZI2LFT22DNNCJ765';
-        $mail->Password   = 'BJHae6l3wKylf8k5WoD5wS87EtG0gINIwJ7oFBsLIGpl';
-        $mail->SMTPSecure = 'tls';
-        $mail->Port       = 587;
-        $mail->CharSet    = "UTF-8";
-        $mail->isHTML(true);
         //
         $mail->setFrom("rh@gerar.org.br", "Equipe RH");  // Nome e e-Mail do Remetente
         $mail->Subject = "GERAR|R&S - Solicitação de abertura de Vaga";

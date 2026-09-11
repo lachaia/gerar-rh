@@ -25,9 +25,7 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 
-require '../includes/PHPMailer-master/src/Exception.php';
-require '../includes/PHPMailer-master/src/PHPMailer.php';
-require '../includes/PHPMailer-master/src/SMTP.php';
+require_once '../includes/email_config.php';
 
 $dados = filter_input_array(INPUT_POST, FILTER_DEFAULT);
 if( $dados ) extract($dados);
@@ -50,22 +48,8 @@ if ( ! file( $documento )) {
     die(json_encode($retorna));
 }
 
-$mail = new PHPMailer(true);
-
-//Server settings
-$mail->SMTPDebug = SMTP::DEBUG_SERVER; 
-$mail->isSMTP(); 
-$mail->Host       = 'email-smtp.sa-east-1.amazonaws.com'; 
-$mail->SMTPAuth   = true; 
-$mail->Username   = 'AKIAZI2LFT22DNNCJ765'; 
-$mail->Password   = 'BJHae6l3wKylf8k5WoD5wS87EtG0gINIwJ7oFBsLIGpl'; 
-$mail->SMTPSecure = 'tls'; 
-$mail->Port       = 587; 
-$mail->CharSet    = "UTF-8"; 
-$mail->isHTML(true); 
-
+$mail = criarMailer();
 $mail->setFrom("rh@gerar.org.br", "Equipe RH");  // Nome e e-Mail do Remetente
-$mail->isHTML(true);                             // Set email format to HTML
 $mail->Subject = $titulo;
 $mail->Body = $mensagem;
 
