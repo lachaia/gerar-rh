@@ -364,7 +364,7 @@ function f_visualizar(id) {
         if (dados.arquivo) {
             $("#v_nomeArquivo").text(dados.arquivo);
             $("#v_linkArquivo")
-                .attr("href", "docs/pessoa_" + dados.idPessoa + "/" + encodeURIComponent(dados.arquivo))
+                .attr("href", "docs_view.php?pessoa=" + dados.idPessoa + "&arquivo=" + encodeURIComponent(dados.arquivo))
                 .attr("download", dados.arquivo)
                 .show();
         } else {
@@ -433,7 +433,7 @@ function verificaArquivo() {
 }
 
 function f_ver_doc(idPessoa, arquivo) {
-    let url = "docs/pessoa_" + idPessoa + "/" + arquivo;
+    let url = "docs_view.php?pessoa=" + idPessoa + "&arquivo=" + encodeURIComponent(arquivo);
     let win = window.open(url, '_blank');
 }
 

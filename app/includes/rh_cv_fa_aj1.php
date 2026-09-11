@@ -51,7 +51,7 @@ if( isset($_SESSION['idLogin']) ){
 //
     $idPessoa = $linha['idPessoa'];
     $arquivo = $linha['arquivo'];
-    if( ! empty($arquivo) ) $url = "/rh/docs/pessoa_$idPessoa/$arquivo"; else $url = "";
+    if( ! empty($arquivo) ) $url = "docs_view.php?pessoa=$idPessoa&arquivo=" . rawurlencode($arquivo); else $url = "";
 
     $linha['url'] = $url;
 

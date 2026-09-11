@@ -62,7 +62,7 @@ $stmt = $conn->prepare($sql);
 $stmt->bindParam(':idPessoa', $idPessoa, PDO::PARAM_INT);
 $stmt->execute();
 $diversidade = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
-$arquivo_url = !empty($diversidade['arquivo']) ? "../app/docs/pessoa_{$idPessoa}/" . $diversidade['arquivo'] : null;
+$arquivo_url = !empty($diversidade['arquivo']) ? "../app/docs_view.php?pessoa={$idPessoa}&arquivo=" . rawurlencode($diversidade['arquivo']) : null;
 
 //- Converte o HTML rico do Summernote (preenchido pelo próprio candidato, em new.php)
 //- em texto simples antes de mandar pro navegador do recrutador - o candidato controla

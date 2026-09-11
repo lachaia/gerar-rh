@@ -26,7 +26,7 @@ $(document).ready(function () {
 });
 
 function f_mostra(idDoc, idPessoa, arquivo) {
-    const caminho = `../docs/pessoa_${idPessoa}/${arquivo}`;
+    const caminho = `../docs_view.php?pessoa=${idPessoa}&arquivo=${encodeURIComponent(arquivo)}`;
     console.log("Abrindo arquivo: " + caminho);
 
     // Define o caminho no iframe
@@ -38,12 +38,12 @@ function f_mostra(idDoc, idPessoa, arquivo) {
 }
 
 function f_mostra_aba(idPessoa, arquivo) {
-    const caminho = `../docs/pessoa_${idPessoa}/${arquivo}`;
+    const caminho = `../docs_view.php?pessoa=${idPessoa}&arquivo=${encodeURIComponent(arquivo)}`;
     window.open(caminho, '_blank');
 }
 
 function f_down(idDoc, idPessoa, arquivo) {
-    let caminho = "../docs/pessoa_" + idPessoa + "/" + arquivo;
+    let caminho = "../docs_view.php?pessoa=" + idPessoa + "&arquivo=" + encodeURIComponent(arquivo);
 
     // Criar um link temporário e simular o clique
     let link = document.createElement("a");

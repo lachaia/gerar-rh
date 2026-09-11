@@ -111,7 +111,7 @@ $(document).ready(function () {
 });
 
 function mostra_cv(idPessoa, arquivo) {
-    let url = "/rh/docs/pessoa_" + idPessoa + "/" + arquivo;
+    let url = "../docs_view.php?pessoa=" + idPessoa + "&arquivo=" + encodeURIComponent(arquivo);
     window.open(url, "_blank");
 }
 
@@ -1353,7 +1353,7 @@ function envia_arquivoCV() {
 //---------------------------------------------------
 
 function mostra_cv(idPessoa, arquivo) {
-    let url = "/rh/docs/pessoa_" + idPessoa + "/" + arquivo;
+    let url = "../docs_view.php?pessoa=" + idPessoa + "&arquivo=" + encodeURIComponent(arquivo);
     window.open(url, "_blank");
 }
 

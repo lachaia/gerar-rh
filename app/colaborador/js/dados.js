@@ -289,7 +289,7 @@ function f_lista_comprovantes(idPessoa) {
 }
 
 function mostra_arquivo(idPessoa, nomeArquivo) {
-    let url = "../docs/pessoa_" + idPessoa + "/" + nomeArquivo;
+    let url = "../docs_view.php?pessoa=" + idPessoa + "&arquivo=" + encodeURIComponent(nomeArquivo);
     let win = window.open(url, '_blank');
     if (win) {
         // Browser has allowed it to be opened
@@ -386,7 +386,7 @@ function f_lista_fotos(idPessoa) {
             $("#listaFotos").html(""); // Limpa a lista antes de adicionar as fotos
 
             resultado.fotos.forEach(function (foto) {
-                let caminhoImagem = `../docs/pessoa_${idPessoa}/${foto.arquivo}`; // caminho real do arquivo
+                let caminhoImagem = `../docs_view.php?pessoa=${idPessoa}&arquivo=${encodeURIComponent(foto.arquivo)}`; // caminho real do arquivo
 
                 let arquivoFormatado = `
                     <div class="card-footer cartao mt-2 p-3 rounded d-flex justify-content-between align-items-center" id="foto_${foto.idDoc}">
@@ -442,7 +442,7 @@ function f_form_fotos() {
             $("#idPessoa").val(_dados.idPessoa);
             //
             // Formatando o endereço
-            let caminhoImagem = `../docs/pessoa_${_dados.idPessoa}/${_dados.arquivo}`; // caminho real do arquivo
+            let caminhoImagem = `../docs_view.php?pessoa=${_dados.idPessoa}&arquivo=${encodeURIComponent(_dados.arquivo)}`; // caminho real do arquivo
             let arquivoFormatado = `
                     <div class="card-footer mt-2 p-3 rounded d-flex justify-content-between align-items-center cartao" id="foto_${_dados.idDoc}">
                         <div class="d-flex align-items-center">

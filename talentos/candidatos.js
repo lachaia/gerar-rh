@@ -1301,7 +1301,7 @@ function envia_arquivoCV() {
 //---------------------------------------------------
 
 function mostra_cv(idPessoa, arquivo) {
-    let url = "../app/docs/pessoa_" + idPessoa + "/" + arquivo;
+    let url = "../app/docs_view.php?pessoa=" + idPessoa + "&arquivo=" + encodeURIComponent(arquivo);
     window.open(url, "_blank");
 }
 

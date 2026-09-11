@@ -768,7 +768,7 @@ function f_lista_fotos(idPessoa) {
             $("#listaFotos").html(""); // Limpa a lista antes de adicionar os endereços
 
             resultado.fotos.forEach(function (foto) {
-                let caminhoFoto = `docs/pessoa_${idPessoa}/${foto.arquivo}`;
+                let caminhoFoto = `docs_view.php?pessoa=${idPessoa}&arquivo=${encodeURIComponent(foto.arquivo)}`;
 
                 let arquivoFormatado = `
                 <div class="card-footer text-dark mt-2 p-3 rounded d-flex align-items-center" id="ce_${foto.idDoc}" style="background-color: gainsboro">

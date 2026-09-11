@@ -434,8 +434,10 @@ function f_ver_membro(id) {
 
         $("#criadoMembro").html('<i class="fa-regular fa-calendar-check"></i> ' + x.dados.criado_em + " por " + x.dados.criado_por);
         //
-        let foto = x.dados.foto || 'perfil.png'; // se não vier, usa avatar padrão
-        document.getElementById("v_foto").src = "../docs/cipa/" + foto;
+        let foto = x.dados.foto || null;
+        document.getElementById("v_foto").src = foto
+            ? "../docs_view.php?pasta=cipa&arquivo=" + encodeURIComponent(foto)
+            : "../fotos/perfil.png";
 
         //
         verModalMembro.show();
@@ -466,7 +468,7 @@ function f_editar_membro($idMembro) {
         // Atualiza preview da foto
         const preview = document.getElementById("previewImagemAlt");
         if (x.dados.foto && x.dados.foto.trim() !== "") {
-            preview.src = "../docs/cipa/" + x.dados.foto;
+            preview.src = "../docs_view.php?pasta=cipa&arquivo=" + encodeURIComponent(x.dados.foto);
         } else {
             preview.src = "../fotos/perfil.png";
         }
@@ -1107,7 +1109,7 @@ function f_ver_ata(arquivo) {
         return;
     }
 
-    let url = '../docs/cipa/' + encodeURIComponent(arquivo);
+    let url = '../docs_view.php?pasta=cipa&arquivo=' + encodeURIComponent(arquivo);
     window.open(url, '_blank');
 }
 
@@ -1584,7 +1586,7 @@ function f_ver_doc(idDoc) {
         document.getElementById("v_original").textContent = x.dados.nome_original;
         //
         const extensao = x.dados.arquivo.split('.').pop().toLowerCase();
-        const caminho = "../docs/cipa/" + x.dados.arquivo;
+        const caminho = "../docs_view.php?pasta=cipa&arquivo=" + encodeURIComponent(x.dados.arquivo);
         const previewDiv = document.getElementById("previewDoc");
         let htmlPreview = "";
         //

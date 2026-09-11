@@ -48,7 +48,7 @@ while ($linha = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $data_final = date("Y-m-d", strtotime($data_final));
     }
 
-    $caminhoFoto = !empty($foto) ? "../docs/brigada/$foto" : "../fotos/perfil.png";
+    $caminhoFoto = !empty($foto) ? "../docs_view.php?pasta=brigada&arquivo=" . rawurlencode($foto) : "../fotos/perfil.png";
 
     $dado[] = "<span class='$cor'>$dsSubSede</span>";
     $dado[] = "<span class='$cor'>$nome</span>";

@@ -1043,7 +1043,7 @@ function f_ver_ata(arquivo) {
         return;
     }
 
-    let url = 'docs/brigada/' + encodeURIComponent(arquivo);
+    let url = 'docs_view.php?pasta=brigada&arquivo=' + encodeURIComponent(arquivo);
     window.open(url, '_blank');
 }
 

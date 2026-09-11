@@ -495,7 +495,7 @@ function f_ver_termo(id) {
         //
         const arquivo = String(resposta.arquivo || "").trim();
         if (arquivo) {
-            let filename = "../docs/pessoa_" + resposta.idPessoa + "/" + arquivo;
+            let filename = "../docs_view.php?pessoa=" + resposta.idPessoa + "&arquivo=" + encodeURIComponent(arquivo);
             $("#vw_termo_documento").val(filename);
             $("#view_documento").html('<embed src="' + filename + '" type="application/pdf" width="100%" height="400px" />');
         } else {

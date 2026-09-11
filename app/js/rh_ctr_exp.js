@@ -310,7 +310,7 @@ function f_visualizar(id) {
         // --- Documento PDF ---
         if (dados.arquivo && dados.arquivo !== "") {
             // Caminho do arquivo (ajuste o diretório conforme sua estrutura)
-            let caminho = "docs/pessoa_" + dados.idPessoa + "/" + dados.arquivo;
+            let caminho = "docs_view.php?pessoa=" + dados.idPessoa + "&arquivo=" + encodeURIComponent(dados.arquivo);
 
             // Seta o preview no iframe
             $("#v_previewDoc").attr("src", caminho);

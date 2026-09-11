@@ -704,7 +704,7 @@ function f_add_dependente_commit(){
 
 function mostra_arquivo( arquivo ){
     let idPessoa = $("#idPessoa").val();
-    let url = "docs/pessoa_" + idPessoa + "/" + arquivo;
+    let url = "docs_view.php?pessoa=" + idPessoa + "&arquivo=" + encodeURIComponent(arquivo);
     let win = window.open(url, '_blank');
     if (win) {
         win.focus();

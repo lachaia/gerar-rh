@@ -59,7 +59,7 @@ $idPessoaSessao = (int) $_SESSION['candidato_idPessoa'];
 //
     $idPessoa = $linha['idPessoa'];
     $arquivo = $linha['arquivo'];
-    if( ! empty($arquivo) ) $url = "/rh/app/docs/pessoa_$idPessoa/$arquivo"; else $url = "";
+    if( ! empty($arquivo) ) $url = "../app/docs_view.php?pessoa=$idPessoa&arquivo=" . rawurlencode($arquivo); else $url = "";
 
     $linha['url'] = $url;
 

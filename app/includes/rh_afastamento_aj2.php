@@ -48,11 +48,8 @@ if( isset($_SESSION['idLogin']) ){
     } 
     else die("erro processando link do arquivo para visualização");
 
-    if( isset($origem) && ! empty($origem) ){
-        $link = " <a href='/rh/docs/pessoa_$idPessoa/$arquivo' target='_blank'><i class='fa-solid fa-magnifying-glass'></i></a>";
-    } else{
-        $link = " <a href='/rh/docs/pessoa_$idPessoa/$arquivo' target='_blank'><i class='fa-solid fa-magnifying-glass'></i></a>";
-    }
+    $arquivoUrl = rawurlencode($arquivo);
+    $link = " <a href='docs_view.php?pessoa=$idPessoa&arquivo=$arquivoUrl' target='_blank'><i class='fa-solid fa-magnifying-glass'></i></a>";
     
     $linha['arquivo_link'] = $arquivo . $link;
 

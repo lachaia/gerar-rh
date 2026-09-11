@@ -186,37 +186,55 @@ function visualizar_documento() {
     const documento = $("#_nomeArquivo").val();
     const tipo = $("#_tipoArquivo").val();
 
-    //- IDENTIFICA A ORIGEM DO DOCUMENTO X PATH DE ACESSO
-    // GED - GED            | docs/pessoa_?/
-    // CIP - CIPA           | docs/CIPA/        | Reuniões da CIPA
-    // GIP - CIPA           | docs/CIPA/        | Ged da CIPA    
-    // GRI - Brigada        | docs/brigada/     | Ged da Brigada
-    // BRI - Brigada        | docs/brigada/     | Reuniões da Brigada
-    // TRM - Termos         | docs/pessoa_?/    | Termos de Responsabilidades
-    // AFA - Afastamentos   | docs/pessoa_?/    | Atestados Médicos
-    // CTR - Contrato Exp.  | docs/pessoa_?/    | Contrato de Trabalho de Experiência
+    //- IDENTIFICA A ORIGEM DO DOCUMENTO X MODO DE ACESSO (docs_view.php)
+    // GED - GED            | pessoa
+    // CIP - CIPA           | pasta=cipa        | Reuniões da CIPA
+    // GIP - CIPA           | pasta=cipa        | Ged da CIPA
+    // GRI - Brigada        | pasta=brigada     | Ged da Brigada
+    // BRI - Brigada        | pasta=brigada     | Reuniões da Brigada
+    // TRM - Termos         | pessoa            | Termos de Responsabilidades
+    // AFA - Afastamentos   | pessoa            | Atestados Médicos
+    // CTR - Contrato Exp.  | pessoa            | Contrato de Trabalho de Experiência
     //
 
-    let diretorio = 'docs/pessoa_' + idPessoa + '/';
+    let pasta = null;
     if (origem == 'CIP' || origem == 'GIP') {
-        diretorio = 'docs/CIPA/';
-    }
-    if (origem == 'GRI' || origem == 'BRI') {
-        diretorio = 'docs/brigada/';
+        pasta = 'cipa';
+    } else if (origem == 'GRI' || origem == 'BRI') {
+        pasta = 'brigada';
     }
 
+    const paramsBase = pasta
+        ? ("pasta=" + encodeURIComponent(pasta))
+        : ("pessoa=" + encodeURIComponent(idPessoa));
+
     if (tipo == 'docx' || tipo == 'xlsx' || tipo == 'pptx') {
-        //var caminhoDocumento = 'https://rh.gerar.org.br/docs/pessoa_' + idPessoa + "/" + documento;
-        var caminhoDocumento = 'https://rh.gerar.org.br/'+ diretorio + documento;
-        var urlGoogleDocsViewer = 'https://docs.google.com/viewer?url=' + caminhoDocumento;
-        window.open(urlGoogleDocsViewer, '_blank', 'width=600,height=600');
+        // O Google Docs Viewer busca o arquivo direto do servidor do Google,
+        // sem cookie de sessão — por isso precisa de uma URL assinada de
+        // curta duração. Abre a janela já (dentro do clique do usuário, pra
+        // não ser bloqueada como pop-up) e só navega ela quando o link chegar.
+        let janela = window.open('', '_blank', 'width=600,height=600');
+        $.get("includes/docs_link_aj.php", { pessoa: idPessoa, pasta: pasta, arquivo: documento }, function (resposta) {
+            let dados = typeof resposta === "string" ? JSON.parse(resposta) : resposta;
+            if (!dados.status) {
+                if (janela) janela.close();
+                alert(dados.msg || "Não foi possível gerar o link de visualização.");
+                return;
+            }
+            let caminhoDocumento = 'https://rh.gerar.org.br/docs_view.php?' + dados.query;
+            let urlGoogleDocsViewer = 'https://docs.google.com/viewer?url=' + encodeURIComponent(caminhoDocumento);
+            if (janela) {
+                janela.location.href = urlGoogleDocsViewer;
+            } else {
+                window.open(urlGoogleDocsViewer, '_blank', 'width=600,height=600');
+            }
+        });
         return true;
     }
 
     const tiposPermitidos = ['pdf', 'gif', 'tiff', 'tif', 'jpeg', 'jpg', 'png', 'bmp', 'webp'];
     if (tiposPermitidos.includes(tipo)) {
-        //const caminho = "docs/pessoa_" + idPessoa + "/" + documento;
-        const caminho = diretorio + documento;
+        const caminho = "docs_view.php?" + paramsBase + "&arquivo=" + encodeURIComponent(documento);
         window.open(caminho, '_blank', 'width=1024,height=800');
         return true;
     }

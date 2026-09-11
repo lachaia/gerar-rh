@@ -20,11 +20,6 @@ com todos os valores vindos direto do POST, sem bind. **Qualquer pessoa na inter
 
 **Ação:** corrigir agora — adicionar `isset($_SESSION['idLogin']) && $_SESSION['idGrupo'] == 9` (ou o grupo apropriado) + `exit()` no topo de todos os `rh_usuario*_aj*.php`, e usar bind de parâmetro em todas as queries.
 
-### 7. Documentos sensíveis servidos como arquivo estático, sem autenticação nem `.htaccess`
-`app/docs/pessoa_<idPessoa>/` (documentos de RH, atestados, contratos) e os PDFs de termo de responsabilidade de equipamento (`responsa_<idTermo>.pdf`, com CPF/endereço/assinatura) são abertos por **URL direta** (`window.open()` no JS), nunca por um script PHP que poderia checar sessão. Caminho e nomes são previsíveis/sequenciais. Qualquer pessoa na internet pode enumerar `pessoa_1` a `pessoa_600+` e baixar os documentos de qualquer colaborador ou candidato.
-
-**Ação:** servir documentos só através de um script PHP que valide sessão + posse do registro antes de fazer `readfile()`, e bloquear acesso direto à pasta via `.htaccess`/configuração do Apache (`deny from all` + só o PHP acessa via caminho interno).
-
 ### 8. SQL Injection não autenticada em pontos críticos
 - **`app/includes/login_aj2.php`** (linha ~20-28) — a etapa que identifica o usuário **antes** da senha ser validada monta `WHERE login like '%$login%' OR P.cpf like '%$login_cpf%' OR P.email_corporativo like '%$login%'` sem bind. Isso é injeção de SQL **no próprio fluxo de login**, sem exigir credencial alguma.
 - **`app/includes/rh_reajuste_aj1.php`** — sem `session_start()`, `WHERE C.idOrgao = $idOrgao` direto do `$_GET`.

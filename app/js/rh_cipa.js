@@ -1043,7 +1043,7 @@ function f_ver_ata(arquivo) {
         return;
     }
 
-    let url = 'docs/cipa/' + encodeURIComponent(arquivo);
+    let url = 'docs_view.php?pasta=cipa&arquivo=' + encodeURIComponent(arquivo);
     window.open(url, '_blank');
 }
 

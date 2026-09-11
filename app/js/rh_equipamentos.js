@@ -199,7 +199,7 @@ function f_ver_termo(id){
         $("#vw_termo_criado_por").html(resposta.criado_por);
         $("#vw_termo_status").html(resposta.dsStatus);
         //
-        let filename = "docs/pessoa_" + resposta.idPessoa + "/" + resposta.arquivo;
+        let filename = "docs_view.php?pessoa=" + resposta.idPessoa + "&arquivo=" + encodeURIComponent(resposta.arquivo);
         let url  = '<embed src="'+filename+'" type="application/pdf" width="100%" height="400px" />';
         $("#view_documento").html( url);
         $("#vw_termo_documento").val( filename );

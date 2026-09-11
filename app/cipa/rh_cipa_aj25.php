@@ -44,7 +44,7 @@ while ($linha = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $acoes .= "<a href='#!' class='btn btn-outline-secondary btn-sm'><i class='fa-solid fa-pen'></i></a>"; 
         $acoes .= "<a href='#!' class='btn btn-outline-secondary btn-sm'><i class='fa-solid fa-trash-can'></i></a>";
     }
-    $acoes .= "<a href='../docs/cipa/$arquivo' class='btn btn-outline-primary btn-sm' download><i class='fa-solid fa-download'></i></a>";
+    $acoes .= "<a href='../docs_view.php?pasta=cipa&arquivo=" . rawurlencode($arquivo) . "' class='btn btn-outline-primary btn-sm' download><i class='fa-solid fa-download'></i></a>";
 
     //
     if( empty( $data_final) ){
