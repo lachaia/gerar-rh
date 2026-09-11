@@ -10,15 +10,6 @@ Os achados estão organizados por severidade. Dentro de cada nível, por categor
 
 ## CRÍTICO — ação imediata
 
-### 1. Segredos de produção já expostos no histórico do Git (pushed ao GitHub)
-O commit `b1121552` ("Primeira Envio ao Repositório") está em `origin/Versao-1` no GitHub (`lachaia/gerar-rh`) e contém, em texto plano:
-- Senha do MySQL de produção (`app/includes/conexao_gerar.php`)
-- Chave de API da Anthropic (`app/includes/config_ia.php`)
-- Credenciais SMTP/AWS SES — Access Key + Secret (`app/includes/inc_email.php`, `app/colaborador/includes/inc_email.php`, `app/includes/rh_docs_eml_aj.php`)
-- JSON de conta de serviço Google (`app/chaves/gerarocr-*.json`)
-
-**Ação:** rotacionar TODAS essas credenciais agora, independente do repositório ser público ou privado (histórico de git é fácil de vazar via clone, fork, backup, colaborador que sai da empresa). Depois de rotacionar, mover para variáveis de ambiente e adicionar ao `.gitignore` (não resolve o vazamento já ocorrido, só evita repetir).
-
 ### 2. Takeover de conta sem nenhuma autenticação — `app/includes/rh_usuario_alt_aj.php`
 Não há `session_start()`/checagem de login no arquivo inteiro. Constrói e executa:
 ```php

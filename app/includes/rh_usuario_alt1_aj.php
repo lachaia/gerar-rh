@@ -6,6 +6,12 @@
 
 session_start();
 
+$grupo = $_SESSION['idGrupo'] ?? null;
+if (!isset($_SESSION['idLogin']) || ($grupo > 2 && $grupo != 9 && $grupo != 7)) {
+    http_response_code(403);
+    die(json_encode(["status" => false, "msg" => "Acesso negado."]));
+}
+
 $idModulo  = 1; // rh_usuarios.php
 
 include_once "../includes/conexao_gerar.php";
@@ -18,6 +24,7 @@ try {
 
     if( $stmt AND $stmt->rowCount()>0 ){
         $dados = $stmt->fetch(PDO::FETCH_ASSOC);
+        unset($dados['senha']); // nunca devolver o hash da senha ao cliente
         $retorna = ['status' => true, "dados" => $dados ];
     } else{
         $retorna = ['status' => false, "msg" => "<div class='alert alert-danger' role='alert'>Erro: Nenhum Usuário Encontrado!</div>"];

@@ -8,6 +8,12 @@
 
 session_start();
 
+$grupo = $_SESSION['idGrupo'] ?? null;
+if (!isset($_SESSION['idLogin']) || ($grupo > 2 && $grupo != 9 && $grupo != 7)) {
+    http_response_code(403);
+    die(json_encode(["status" => false, "msg" => "Acesso negado."]));
+}
+
 $idModulo  = 1; // rh_usuarios.php
 $idUsuario = $_POST["id"];
 

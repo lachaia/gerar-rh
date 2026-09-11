@@ -5,6 +5,13 @@
 //
 
 session_start();
+
+$grupo = $_SESSION['idGrupo'] ?? null;
+if (!isset($_SESSION['idLogin']) || ($grupo > 2 && $grupo != 9 && $grupo != 7)) {
+    http_response_code(403);
+    die(json_encode(["status" => false, "msg" => "Acesso negado."]));
+}
+
 include_once "../includes/conexao_gerar.php";
 include_once "../includes/f_logs.php";
 

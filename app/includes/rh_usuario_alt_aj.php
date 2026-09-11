@@ -4,6 +4,13 @@
 // - 2023-08-23 By Chaia.
 
 session_start();
+
+$grupo = $_SESSION['idGrupo'] ?? null;
+if (!isset($_SESSION['idLogin']) || ($grupo > 2 && $grupo != 9 && $grupo != 7)) {
+    http_response_code(403);
+    die(json_encode(["status" => false, "msg" => "Acesso negado."]));
+}
+
 include_once "../includes/conexao_gerar.php";
 include_once "../includes/f_logs.php";
 
@@ -73,8 +80,10 @@ $dadosAntigos = "Dados Antigos: " . implode(', ', $antigo);
 //- Verifica se Novo Login Já Existe para outro usuário
 //
 if ($antigo['login'] != $login) {
-    $sql = "SELECT idUsuario, login FROM rh_usuarios WHERE login like '$login' AND idUsuario <> $idUsuairo";
+    $sql = "SELECT idUsuario, login FROM rh_usuarios WHERE login LIKE :login AND idUsuario <> :idUsuario";
     $stmt = $conn->prepare($sql);
+    $stmt->bindParam('login', $login, PDO::PARAM_STR);
+    $stmt->bindParam('idUsuario', $idUsuario, PDO::PARAM_INT);
     $stmt->execute();
     //
     if ($stmt->rowCount() > 0) {
@@ -85,34 +94,47 @@ if ($antigo['login'] != $login) {
 
 if (! empty($senha)) {
     $ksenha = password_hash($senha, PASSWORD_DEFAULT);
-    $sql = "UPDATE rh_usuarios SET 
-                idUsuarioGrupo = $idUsuarioGrupo, 
-                idPessoa       = $idPessoa, 
-                idColab        = $idColab, 
-                login          = '$login',                 
-                ativo          = $kativo, 
-                dcCIPA         = $checkCipa,
-                dcBrigada      = $checkBrigada,
-                chaveApp       = '$chaveApp', 
-                idSubSede      = $idSubSede,
-                senha          = '$ksenha'
-                WHERE idUsuario = $idUsuario";
+    $sql = "UPDATE rh_usuarios SET
+                idUsuarioGrupo = :idUsuarioGrupo,
+                idPessoa       = :idPessoa,
+                idColab        = :idColab,
+                login          = :login,
+                ativo          = :ativo,
+                dcCIPA         = :checkCipa,
+                dcBrigada      = :checkBrigada,
+                chaveApp       = :chaveApp,
+                idSubSede      = :idSubSede,
+                senha          = :senha
+                WHERE idUsuario = :idUsuario";
 } else {
-    $sql = "UPDATE rh_usuarios SET 
-                idUsuarioGrupo = $idUsuarioGrupo, 
-                idPessoa       = $idPessoa, 
-                idColab        = $idColab, 
-                login          = '$login', 
-                ativo          = $kativo , 
-                dcCIPA         = $checkCipa,
-                dcBrigada      = $checkBrigada,
-                chaveApp       = '$chaveApp', 
-                idSubSede      = $idSubSede
-                WHERE idUsuario = $idUsuario";
+    $sql = "UPDATE rh_usuarios SET
+                idUsuarioGrupo = :idUsuarioGrupo,
+                idPessoa       = :idPessoa,
+                idColab        = :idColab,
+                login          = :login,
+                ativo          = :ativo ,
+                dcCIPA         = :checkCipa,
+                dcBrigada      = :checkBrigada,
+                chaveApp       = :chaveApp,
+                idSubSede      = :idSubSede
+                WHERE idUsuario = :idUsuario";
 }
 
 try {
     $stmt = $conn->prepare($sql);
+    $stmt->bindParam('idUsuarioGrupo', $idUsuarioGrupo);
+    $stmt->bindParam('idPessoa', $idPessoa);
+    $stmt->bindParam('idColab', $idColab);
+    $stmt->bindParam('login', $login);
+    $stmt->bindParam('ativo', $kativo);
+    $stmt->bindParam('checkCipa', $checkCipa);
+    $stmt->bindParam('checkBrigada', $checkBrigada);
+    $stmt->bindParam('chaveApp', $chaveApp);
+    $stmt->bindParam('idSubSede', $idSubSede);
+    $stmt->bindParam('idUsuario', $idUsuario);
+    if (! empty($senha)) {
+        $stmt->bindParam('senha', $ksenha);
+    }
     if ($stmt->execute()) {
         $retorno = "Alteração bem sucedida! ";
         //
@@ -139,8 +161,10 @@ try {
             //
             if (move_uploaded_file($nomeTemporario, $caminhoDestino)) {
                 // O arquivo foi movido com sucesso, você pode continuar o processamento aqui
-                $sql = "UPDATE rh_usuarios SET foto = '$novoNome' WHERE idUsuario = $idUsuario";
+                $sql = "UPDATE rh_usuarios SET foto = :foto WHERE idUsuario = :idUsuario";
                 $stmt = $conn->prepare($sql);
+                $stmt->bindParam('foto', $novoNome);
+                $stmt->bindParam('idUsuario', $idUsuario);
                 $result = $stmt->execute();
 
                 // Envie uma resposta JSON de sucesso
