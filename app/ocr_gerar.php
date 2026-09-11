@@ -2,9 +2,22 @@
 //
 //- ocr_gerar.php | Rotina para Extrair TEXTO de documento para indexação em Upload
 //- (C) Chaia, 22/02/2024
+//
+// Este endpoint só é chamado internamente (via cURL, servidor->servidor) por
+// outros _aj.php já autenticados — a chamada não carrega sessão/cookie do
+// usuário. Como não dá pra exigir login aqui sem quebrar quem já chama certo,
+// a proteção é: só aceitar requisição vinda do próprio servidor.
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
+
+require_once __DIR__ . '/includes/f_upload_seguro.php';
+
+if (($_SERVER['REMOTE_ADDR'] ?? '') !== ($_SERVER['SERVER_ADDR'] ?? '!')
+    && ($_SERVER['REMOTE_ADDR'] ?? '') !== '127.0.0.1') {
+    http_response_code(403);
+    die(json_encode(["status" => false, "msg" => "Acesso negado."]));
+}
 
 // Permitir múltiplas origens
 $allowed_origins = array(
@@ -22,6 +35,11 @@ $caminho = __DIR__ . '/chaves/gerarocr-ba77063bf0b6.json';
 putenv("GOOGLE_APPLICATION_CREDENTIALS=$caminho");
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['arquivo'])) {
+    $validacao = upload_seguro_validar($_FILES['arquivo'], ['pdf', 'gif', 'tiff', 'tif', 'jpeg', 'jpg', 'png', 'bmp', 'webp', 'docx', 'xlsx']);
+    if ($validacao !== true) {
+        die(json_encode(["status" => false, "msg" => $validacao]));
+    }
+
     $diretorio_destino = "temp";  // ajuste conforme necessário
 
     $arquivo_temporario = $_FILES['arquivo']['tmp_name'];

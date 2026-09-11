@@ -20,9 +20,6 @@ com todos os valores vindos direto do POST, sem bind. **Qualquer pessoa na inter
 
 **Ação:** corrigir agora — adicionar `isset($_SESSION['idLogin']) && $_SESSION['idGrupo'] == 9` (ou o grupo apropriado) + `exit()` no topo de todos os `rh_usuario*_aj*.php`, e usar bind de parâmetro em todas as queries.
 
-### 5. `app/ocr_gerar.php` — upload não autenticado direto na webroot
-Sem `session_start()`, sem checagem de extensão, salva em `app/temp/` (pasta sem `.htaccess`, hoje cheia de PDFs sensíveis reais). `curl -F "arquivo=@shell.php" .../ocr_gerar.php` é RCE sem login.
-
 ### 6. Path traversal / leitura arbitrária de arquivo — `ocr_docx.php`, `ocr_pptx.php`, `ocr_xlxs.php`, `ocr_google.php`
 Todos sem autenticação, todos montam o caminho com `"documentos/" . $_POST['arquivo']` (ou `"temp/" . $_POST['arquivo']` em `ocr_google.php`) sem `basename()`/sanitização. `ocr_google.php` nem exige extensão específica — lê qualquer arquivo alcançável via `../` e manda para a API do Google (exfiltração), devolvendo o texto ao chamador.
 
