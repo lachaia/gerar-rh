@@ -2,6 +2,14 @@
 //
 //-- Inicia a Extração do Texto usando Google Document AI
 //-- Chaia, 27/02/2024 | (U) 12/06/2025
+//
+// Só aceita chamada vinda do próprio servidor (ver ocr_gerar.php, que é
+// quem invoca este arquivo internamente via cURL, sem sessão de usuário).
+if (($_SERVER['REMOTE_ADDR'] ?? '') !== ($_SERVER['SERVER_ADDR'] ?? '!')
+    && ($_SERVER['REMOTE_ADDR'] ?? '') !== '127.0.0.1') {
+    http_response_code(403);
+    die("Acesso negado.");
+}
 
 # Includes the autoloader for libraries installed with composer
 require __DIR__ . '/vendor/autoload.php';
@@ -10,10 +18,23 @@ require __DIR__ . '/vendor/autoload.php';
 use Google\Cloud\DocumentAI\V1\DocumentProcessorServiceClient;
 use Google\Cloud\DocumentAI\V1\RawDocument;
 
-$caminho_arquivo = __DIR__ . "/temp/" . $_POST['arquivo'];
+// basename() impede path traversal (ex.: "../../.env"), e a checagem de
+// realpath garante que o caminho final continua dentro de app/temp/.
+$diretorio_base = __DIR__ . '/temp/';
+$nome_arquivo = basename($_POST['arquivo'] ?? '');
+$caminho_arquivo = $diretorio_base . $nome_arquivo;
 
-if( ! file($caminho_arquivo)){
+$caminho_real = realpath($caminho_arquivo);
+$base_real = realpath($diretorio_base);
+
+if ($nome_arquivo === '' || $caminho_real === false || $base_real === false
+    || strncmp($caminho_real, $base_real, strlen($base_real)) !== 0) {
     die("Arquivo não encontrado #1");
+}
+
+$mime_verificado = tipo_mime($caminho_arquivo);
+if ($mime_verificado === null) {
+    die("Tipo de arquivo não suportado para OCR.");
 }
 
 // Caminho para o seu arquivo JSON de credenciais local

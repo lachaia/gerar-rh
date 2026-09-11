@@ -20,9 +20,6 @@ com todos os valores vindos direto do POST, sem bind. **Qualquer pessoa na inter
 
 **Ação:** corrigir agora — adicionar `isset($_SESSION['idLogin']) && $_SESSION['idGrupo'] == 9` (ou o grupo apropriado) + `exit()` no topo de todos os `rh_usuario*_aj*.php`, e usar bind de parâmetro em todas as queries.
 
-### 6. Path traversal / leitura arbitrária de arquivo — `ocr_docx.php`, `ocr_pptx.php`, `ocr_xlxs.php`, `ocr_google.php`
-Todos sem autenticação, todos montam o caminho com `"documentos/" . $_POST['arquivo']` (ou `"temp/" . $_POST['arquivo']` em `ocr_google.php`) sem `basename()`/sanitização. `ocr_google.php` nem exige extensão específica — lê qualquer arquivo alcançável via `../` e manda para a API do Google (exfiltração), devolvendo o texto ao chamador.
-
 ### 7. Documentos sensíveis servidos como arquivo estático, sem autenticação nem `.htaccess`
 `app/docs/pessoa_<idPessoa>/` (documentos de RH, atestados, contratos) e os PDFs de termo de responsabilidade de equipamento (`responsa_<idTermo>.pdf`, com CPF/endereço/assinatura) são abertos por **URL direta** (`window.open()` no JS), nunca por um script PHP que poderia checar sessão. Caminho e nomes são previsíveis/sequenciais. Qualquer pessoa na internet pode enumerar `pessoa_1` a `pessoa_600+` e baixar os documentos de qualquer colaborador ou candidato.
 
