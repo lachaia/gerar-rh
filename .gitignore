@@ -1,0 +1,44 @@
+# ============================================================
+# Dependências (não versionar, reinstalar via composer/npm)
+# ============================================================
+app/vendor
+/vendor/
+/node_modules/
+.env
+
+# ============================================================
+# Credenciais e segredos — NUNCA versionar
+# (ver ANALISE_SEGURANCA.md — estes arquivos já vazaram no
+# histórico anterior do repositório e as credenciais precisam
+# ser rotacionadas antes/depois do novo upload)
+# ============================================================
+app/includes/conexao_gerar.php
+app/includes/conexao_gerar_old.php
+app/includes/config_ia.php
+app/includes/inc_email.php
+app/includes/email_config.php
+app/includes/inc_email_vars.php
+app/colaborador/includes/inc_email.php
+app/credentials.json
+app/chaves/
+app/includes/google_service_account.php
+
+# ============================================================
+# Dados reais de colaboradores/candidatos (PII) — nunca versionar
+# ============================================================
+app/docs/
+app/temp/
+app/includes/uploads/
+app/ponto/uploads/
+recrutamento/docs/
+usu_*.png
+usu_*.jpg
+usu_*.jpeg
+usu_*.webp
+
+# ============================================================
+# Logs e arquivos de debug
+# ============================================================
+*.log
+app/buffer.txt
+app/buffer/

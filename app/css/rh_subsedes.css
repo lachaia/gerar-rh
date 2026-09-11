@@ -1,0 +1,46 @@
+/* Correção do Summernote para Dark Theme / Bootstrap 5 */
+.note-editor.note-frame {
+    border-color: #495057 !important;
+}
+
+/* Fundo da barra de ferramentas e cor dos botões */
+.note-editor .note-toolbar {
+    background-color: #2b3035 !important;
+    border-bottom: 1px solid #495057 !important;
+}
+
+.note-editor .note-btn {
+    background-color: #343a40 !important;
+    color: #f8f9fa !important;
+    border-color: #495057 !important;
+}
+
+.note-editor .note-btn:hover {
+    background-color: #495057 !important;
+    color: #fff !important;
+}
+
+/* Área de digitação do editor */
+.note-editor .note-editable {
+    background-color: #212529 !important;
+    color: #f8f9fa !important;
+}
+
+/* Menus dropdown (estilos de texto, cores, fontes) */
+.note-editor .dropdown-menu {
+    background-color: #2b3035 !important;
+    color: #fff !important;
+}
+
+.note-editor .dropdown-item {
+    color: #f8f9fa !important;
+}
+
+.note-editor .dropdown-item:hover {
+    background-color: #0d6efd !important;
+    color: #fff !important;
+}
+
+.inativo{
+    color: red;
+}

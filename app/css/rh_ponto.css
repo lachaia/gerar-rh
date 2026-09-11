@@ -1,0 +1,135 @@
+body {
+    background-image: url('../imagens/abstrato_tzuru_fundo.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    font-family: "Segoe UI", sans-serif;
+}
+
+.form-control:focus {
+    background-color: #1e1e1e;
+    color: #fff;
+    border-color: #0dcaf0;
+    box-shadow: 0 0 0 0.25rem rgba(13, 202, 240, 0.25);
+}
+
+.btn:hover {
+    background-color: #0dcaf0;
+    color: #000;
+    transition: all 0.3s ease;
+}
+
+.card {
+    backdrop-filter: blur(8px);
+    background: rgba(30, 30, 30, 0.85);
+}
+
+#dash {
+    background-image: url('imagens/wall1.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+.sb-sidenav {
+    border-right: 1px solid rgba(0, 0, 0, 0.3);
+    box-shadow: 2px 0 4px rgba(111, 111, 111, 0.4);
+}
+
+.cartao_dash {
+    height: 640px;
+    background-color: rgba(0, 0, 0, 0.38);
+    border-right: 2px solid rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+    background-color: #4c00ffff;
+    color: #fff;
+}
+
+.modal-body,
+.modal-footer {
+    background-color: gainsboro;
+    color: #202020ff;
+}
+
+.btn-enviar {
+    background-color: #45a29e;
+    border: none;
+    color: #fff;
+    font-weight: 600;
+}
+
+.btn-enviar:hover {
+    background-color: #66fcf1;
+    color: #000;
+}
+
+.viscampo {
+    border: 1px solid #ccc;
+    /* Borda suave e discreta */
+    border-radius: 5px;
+    /* Cantos levemente arredondados */
+    display: block;
+    /* Ocupa a largura total disponível */
+    width: 100%;
+    /* Garante alinhamento correto */
+    padding: 4px 10px;
+    /* Espaçamento interno para melhor visualização */
+    background-color: #cecbcbff;
+    /* Fundo levemente acinzentado para destacar */
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+form label {
+    font-weight: 500;
+    color: #2a2052ff;
+    /* opcional, combina bem com tema escuro */
+    margin-bottom: 4px;
+    display: block;
+    /* deixa o label em linha separada do input */
+}
+
+.botao {
+    min-width: 100px;
+}
+
+#esp_nome{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    font-weight: 600;    
+}
+
+.status {
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+
+.feriado{
+    color: orange;
+    font-weight: 600;
+}
+
+.compensado{
+    color: green;
+    font-weight: 600;
+}
+
+.ui-autocomplete {
+    z-index: 1056 !important;
+    position: absolute;
+}
+
+#seletorStatus, #seletorStatus2{
+    width: 200px;
+}

@@ -1,0 +1,63 @@
+
+.dataTables_filter {
+    text-align: right; /* Alinha o campo de pesquisa à direita */
+}
+
+.modal label {
+    font-weight: 500;
+    color: rgb(0, 0, 139);
+}
+
+.modal-header{
+    background-color: rgb(116, 116, 224);
+    color: white;
+}
+
+.card-header{
+    background-color: rgba(18, 105, 168, 0.648);
+    color: white;
+}
+
+.modal-body{
+    background-color: gainsboro;
+    color: black;
+}
+
+.visCampo {
+    border: 1px solid #ccc; /* Borda suave e discreta */
+    border-radius: 5px; /* Cantos levemente arredondados */
+    display: block; /* Ocupa a largura total disponível */
+    width: 100%; /* Garante alinhamento correto */
+    padding: 4px 10px; /* Espaçamento interno para melhor visualização */
+    background-color: #f9f9f9; /* Fundo levemente acinzentado para destacar */
+}
+
+.check-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+.check-item p {
+    margin: 0;
+}
+
+/* --- Compactação de modais e blocos de visualização --- */
+.modal-body.compacto .row {
+    margin-bottom: 0.3rem;
+}
+
+.modal-body.compacto label {
+    margin-bottom: 0.1rem;
+    font-size: 0.9rem;
+}
+
+.modal-body.compacto .visCampo {
+    margin-bottom: 0;
+    padding: 2px 8px;
+    font-size: 0.9rem;
+}
+
+/* Compactação geral opcional para campos de visualização */
+.row.mb-1 {
+    margin-bottom: 0.25rem !important;
+}

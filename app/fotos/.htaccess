@@ -1,0 +1,4 @@
+<IfModule mod_headers.c>
+    Header set Cross-Origin-Resource-Policy "cross-origin"
+    Header set Access-Control-Allow-Origin "*"
+</IfModule>

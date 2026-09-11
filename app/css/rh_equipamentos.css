@@ -1,0 +1,22 @@
+/* 
+rh_equipamentos.css
+(C)haia, 19/08/2025
+*/
+
+label {
+    font-weight: bold;
+}
+
+.note-editable {
+    color: black !important; /* Define a cor do texto como branco */
+    background-color: white; /* Opcional: define um fundo escuro para melhor contraste */
+}
+
+.ui-autocomplete {
+    z-index: 1056 !important; /* Bootstrap modal geralmente usa até 1055 */
+    position: absolute;
+    background-color: white;
+    border: 1px solid #ccc;
+    max-height: 200px;
+    overflow-y: auto;
+}

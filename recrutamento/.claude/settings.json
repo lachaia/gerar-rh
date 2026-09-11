@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s http://127.0.0.1:8098/ -o /dev/null -w \"server alive, http=%{http_code}\\\\n\")",
+      "Bash(curl -s 'http://127.0.0.1:8098/aprova.php?id=6&super_id=3&token=4681c1c7d6e9b7333ef3780f66763feb35ffe23ad6b8afd766eb01bd21d5925d' -o /tmp/g1.html)",
+      "Bash(/d/xampp/php/php -r ' *)",
+      "Bash(curl -s 'http://127.0.0.1:8098/aprova.php?id=6&super_id=1&token=4681c1c7d6e9b7333ef3780f66763feb35ffe23ad6b8afd766eb01bd21d5925d' -o /tmp/f1.html)",
+      "Bash(curl -s -X POST http://127.0.0.1:8098/aprova.php --data 'id=6&super_id=3&token=__TRACKED_VAR__&decisao=reprovar&obs=Vaga%20fora%20do%20or%C3%A7amento%20do%20trimestre.' -o /tmp/f6.html)",
+      "Bash(php -v)",
+      "Read(//d/xampp/htdocs/rh/app/**)",
+      "Read(//d/xampp/htdocs/rh/app/js/**)"
+    ]
+  }
+}

@@ -1,0 +1,19 @@
+.modal-header-gray {
+    background-color: lightgray; /* ou outra cor cinza clara de sua escolha */
+}
+
+table{
+font-size: 13px;
+}
+
+.obrigatorio{
+border-color: red;
+}
+
+sup{
+    color: green;
+}
+
+.invisivel{
+    display: none;
+}

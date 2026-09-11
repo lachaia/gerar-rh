@@ -1,0 +1,71 @@
+/* Altura fixa e scroll personalizado para as tarefas */
+#container-tarefas {
+  max-height: 500px;
+  /* Ajuste conforme a altura da sua Grid ao lado */
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #444 #212529;
+}
+
+/* Scrollbar para navegadores Webkit (Chrome/Edge/Safari) */
+#container-tarefas::-webkit-scrollbar {
+  width: 6px;
+}
+
+#container-tarefas::-webkit-scrollbar-track {
+  background: #212529;
+}
+
+#container-tarefas::-webkit-scrollbar-thumb {
+  background-color: #444;
+  border-radius: 10px;
+}
+
+/* Garante que o placeholder fique visível nos campos pretos */
+#form_nova_tarefa .form-control::placeholder {
+  color: #adb5bd !important;
+  /* Um cinza claro do Bootstrap */
+  opacity: 0.8 !important;
+  /* Aumenta a opacidade (padrão costuma ser 0.5) */
+}
+
+/* Para navegadores antigos ou específicos */
+#form_nova_tarefa .form-control::-webkit-input-placeholder {
+  color: #adb5bd;
+  opacity: 0.8;
+}
+
+#form_nova_tarefa .form-control::-moz-placeholder {
+  color: #adb5bd;
+  opacity: 0.8;
+}
+
+#form_nova_tarefa .form-control:-ms-input-placeholder {
+  color: #adb5bd;
+  opacity: 0.8;
+}
+
+.bg-fundo {
+  background-color: #32383dd4 !important;
+}
+
+.status {
+  height: 24px !important;
+  display: flex;
+  align-items: center;
+  /* Alinha verticalmente */
+  justify-content: center;
+  /* Alinha horizontalmente */
+}
+
+/* Força um ganho de visibilidade em TODOS os inputs e textareas no estado normal */
+html body input.form-control::placeholder,
+html body textarea.form-control::placeholder,
+html body input::placeholder,
+html body textarea::placeholder {
+  color: #94a3b8 !important;
+  /* Um cinza claro/médio bem visível (ex: Tailwind slate-400) */
+  opacity: 1 !important;
+  /* Remove qualquer transparência padrão do navegador */
+}

@@ -1,0 +1,51 @@
+label {
+    font-weight: bold;
+}
+
+.obrigatorio {
+    border-color: red;
+}
+
+.campo-destaque {
+    font-size: 16px;
+    font-weight: 500;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 4px;
+    margin-bottom: 8px;
+    color: darkblue;
+}
+
+.card-body {
+    filter: brightness(0.9);
+    /* Diminui o brilho */
+}
+
+.cartao {
+    background-color: #4682b4;
+}
+
+.icon {
+    font-size: 16px;
+}
+
+.nowrap {
+    white-space: nowrap;
+}
+
+#relato {
+    font-size: 16px;
+    font-weight: 500;
+    border: 1px solid #ccc; /* muda para borda completa */
+    border-radius: 6px;      /* cantos levemente arredondados */
+    padding: 10px;           /* espaço interno confortável */
+    margin-bottom: 12px;
+    color: darkblue;
+    height: 300px;           /* altura fixa */
+    overflow-y: auto;        /* rolagem vertical se necessário */
+    background-color: #f9f9f9; /* fundo levemente neutro */
+}
+
+#linkOlho {
+    color: white;
+    text-decoration: none;
+}

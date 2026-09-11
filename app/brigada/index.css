@@ -1,0 +1,140 @@
+.ui-autocomplete {
+    z-index: 1056 !important;
+    /* Modal do Bootstrap usa 1055 */
+}
+
+.cab {
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+}
+
+.obrigatorio {
+    border-color: #ff0000;
+}
+
+.visCampo {
+    border: 1px solid #ccc;
+    /* Borda suave e discreta */
+    border-radius: 5px;
+    /* Cantos levemente arredondados */
+    display: block;
+    /* Ocupa a largura total disponível */
+    width: 100%;
+    /* Garante alinhamento correto */
+    padding: 6px 10px;
+    /* Espaçamento interno para melhor visualização */
+    background-color: #f9f9f9;
+    /* Fundo levemente acinzentado para destacar */
+}
+
+.visLabel {
+    font-weight: 500;
+    color: #333;
+    display: block;
+    /* Garante que o label ocupe a linha inteira */
+    margin-bottom: 2px;
+    /* Espaçamento abaixo do label */
+}
+
+#criadoMembro {
+    font-size: 12px;
+    color: #667;
+    /* Cor cinza suave para o texto */
+}
+
+.modal-wide {
+    max-width: 720px;
+}
+
+.visCampoScroll2L {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    display: block;
+    width: 100%;
+    padding: 6px 10px;
+    background-color: #f9f9f9;
+
+    /* Limite visual para 4 linhas */
+    max-height: calc(1.2em * 4 + 12px);
+    overflow-y: auto;
+    white-space: pre-wrap; /* Respeita quebras de linha e espaços */
+}
+
+
+#v_observacoes {
+    border: 1px solid #ccc;
+    /* Borda suave e discreta */
+    border-radius: 5px;
+    /* Cantos levemente arredondados */
+    display: block;
+    /* Ocupa a largura total disponível */
+    width: 100%;
+    /* Garante alinhamento correto */
+    padding: 6px 10px;
+    /* Espaçamento interno para melhor visualização */
+    background-color: #f9f9f9;
+    /* Fundo levemente acinzentado para destacar */
+
+    /* Limite visual */
+    height: 200px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    /* Respeita quebras de linha e espaços */
+}
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1 0 auto;
+}
+
+footer {
+    flex-shrink: 0;
+    background-color: #f8f9fa;
+    padding: 1rem;
+}
+
+menu {
+    flex-shrink: 0;
+    background-color: #f8f9fa;
+    padding: 1rem;
+    font-size: 12px !important;
+}
+
+/* Alvos diretos nos links para garantir que o tamanho mude */
+.menu .nav-link {
+    font-size: 13px;
+    padding: 8px 12px;
+    color: rgba(255, 255, 255, 0.7); /* Texto suave para não brigar com o título */
+    transition: all 0.3s ease;
+}
+
+/* Efeito ao passar o mouse e item ativo */
+.menu .nav-link:hover, 
+.menu .nav-link.active {
+    color: #fff !important;
+    background-color: rgba(255, 255, 255, 0.1); /* Um leve destaque */
+    border-radius: 5px;
+}
+
+/* Remove a borda padrão das abas do Bootstrap que as vezes polui o visual */
+.nav-tabs {
+    border-bottom: none !important;
+}
+
+.menu .nav-link {
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.ativo{
+    background-color: rgba(16, 205, 91, 0.836);
+    border-radius: 5px;
+    color: #3c3a3a !important;
+}

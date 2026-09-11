@@ -1,0 +1,15 @@
+{
+    "require": {
+        "google/cloud-document-ai": "^1.11",
+        "google/cloud-core": "^1.55",
+        "google/auth": "^1.36",
+        "dompdf/dompdf": "^2.0",
+        "phpoffice/phpword": "^1.2",
+        "phpoffice/phpspreadsheet": "^1.18",
+        "google/cloud-vision": "^1.9",
+        "phpoffice/phppresentation": "^1.0",
+        "aspose/slides-sdk-php": "^24.6",
+        "google/apiclient": "^2.17",
+        "drewlabs/php-dompdf": "^0.9.0"
+    }
+}

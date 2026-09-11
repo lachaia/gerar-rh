@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(/d/xampp/php/php \"C:\\\\Users\\\\lacha\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--xampp-htdocs-rh-recrutamento\\\\b035a162-10e2-442a-86a4-f16998c74323\\\\scratchpad\\\\check_status.php\")",
+      "Bash(/d/xampp/php/php \"C:\\\\Users\\\\lacha\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--xampp-htdocs-rh-recrutamento\\\\b035a162-10e2-442a-86a4-f16998c74323\\\\scratchpad\\\\check2.php\")",
+      "Bash(/d/xampp/php/php \"C:\\\\Users\\\\lacha\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--xampp-htdocs-rh-recrutamento\\\\b035a162-10e2-442a-86a4-f16998c74323\\\\scratchpad\\\\check3.php\")",
+      "Bash(rm -f \"C:\\\\Users\\\\lacha\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--xampp-htdocs-rh-recrutamento\\\\b035a162-10e2-442a-86a4-f16998c74323\\\\scratchpad\\\\check_status.php\" \"C:\\\\Users\\\\lacha\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--xampp-htdocs-rh-recrutamento\\\\b035a162-10e2-442a-86a4-f16998c74323\\\\scratchpad\\\\check2.php\" \"C:\\\\Users\\\\lacha\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--xampp-htdocs-rh-recrutamento\\\\b035a162-10e2-442a-86a4-f16998c74323\\\\scratchpad\\\\check3.php\")",
+      "Bash(/d/xampp/php/php -l \"/d/xampp/htdocs/rh/recrutamento/aprova.php\")",
+      "Bash(/d/xampp/php/php \"C:\\\\Users\\\\lacha\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--xampp-htdocs-rh-recrutamento\\\\b035a162-10e2-442a-86a4-f16998c74323\\\\scratchpad\\\\smoke_test.php\")",
+      "Bash(/d/xampp/php/php 'C:\\\\Users\\\\lacha\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--xampp-htdocs-rh-recrutamento\\\\b035a162-10e2-442a-86a4-f16998c74323\\\\scratchpad\\\\runner.php' 16 4681c1c7d6e9b7333ef3780f66763feb35ffe23ad6b8afd766eb01bd21d5925d)",
+      "Read(//tmp/**)"
+    ]
+  }
+}

@@ -1,0 +1,42 @@
+body {
+    background-image: url('../imagens/fundo.png');
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
+}
+
+#aguarde {
+    display: none;
+}
+
+.estilo_link {
+    color: gainsboro;
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.estilo_link:hover {
+    transform: scale(1.1);
+    font-weight: 700;
+}
+
+.logo {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 70px;
+    height: 70px;
+}
+
+.fs-13{
+    font-size: 15px;
+}
+
+label{
+    color: black;
+}
+
+.invisivel{
+    display: none;
+}

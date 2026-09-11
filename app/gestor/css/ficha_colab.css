@@ -1,0 +1,52 @@
+.campo-destaque {
+    border: 1px solid #ccc; /* Borda suave e discreta */
+    border-radius: 5px; /* Cantos levemente arredondados */
+    display: block; /* Ocupa a largura total disponível */
+    width: 100%; /* Garante alinhamento correto */
+    padding: 4px 10px; /* Espaçamento interno para melhor visualização */
+    background-color: #ffffff; /* Fundo levemente acinzentado para destacar */
+}
+
+.modal label {
+    font-weight: 500;
+    color: rgb(0, 0, 139);
+}
+
+.modal-header{
+    background-color: rgb(116, 116, 224);
+    color: white;
+}
+
+.card-header{
+    background-color: rgba(18, 105, 168, 0.648);
+    color: white;
+}
+
+.modal-body{
+    background-color: gainsboro;
+    color: black;
+}
+
+/* Cor de fundo da barra de ferramentas do Summernote */
+.note-toolbar {
+    background-color: #f8f9fa !important; /* Altere para a cor desejada */
+    border-bottom: 1px solid #ccc;
+}
+
+/* Opcional: cor dos botões na toolbar */
+.note-toolbar .note-btn {
+    background-color: white !important;
+    border: 1px solid #ddd !important;
+    color: #333 !important;
+}
+
+.note-toolbar .note-btn:hover {
+    background-color: #e9ecef !important;
+}
+
+/* Área de edição do Summernote */
+.note-editable {
+    min-height: 150px;   /* altura mínima */
+    max-height: 300px;   /* altura máxima */
+    overflow-y: auto;    /* ativa a rolagem vertical se ultrapassar a altura máxima */
+}

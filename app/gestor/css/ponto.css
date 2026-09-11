@@ -1,0 +1,38 @@
+    .modal-footer .btn {
+        flex: 1;
+        margin: 0.5rem;
+    }
+
+    .modal-footer {
+        display: flex;
+        flex-direction: row;
+        padding: 0;
+    }
+
+    #modalAprovar .modal-content {
+        background-color: #2a2a2a;
+        color: #f8f9fa;
+    }
+
+    #modalAprovar .modal-header {
+        background-color: #3e3e3eff;
+        color: #f8f9fa;
+    }
+
+    #modalAprovar .modal-footer {
+        background-color: #3e3e3eff;
+        color: #f8f9fa;
+    }
+
+    .dataTables_filter {
+        text-align: right;
+        /* Alinha o campo de pesquisa à direita */
+    }
+
+    .status{
+        height: 25px;
+        padding-top: 0.45em !important;
+        padding-bottom: 0.45em !important;
+        font-size: 13px;
+        font-family: "Calibri";
+    }

@@ -1,0 +1,124 @@
+<div id="layoutSidenav_nav">
+    <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
+        <div class="sb-sidenav-menu" class="collapsed">
+
+            <div class="nav">
+                <div class="sb-sidenav-menu-heading">Núcleo</div>
+                <a class="nav-link" href="index.php">
+                    <div class="sb-nav-link-icon"><i class="fas fa-chart-line"></i></div>Dashboard
+                </a>
+                <!--<div class="sb-sidenav-menu-heading">Administrativo</div> -->
+
+                <a class="nav-link" href="rh_pessoas.php">
+                    <div class="sb-nav-link-icon"><i class="fa fa-users"></i></div>
+                    Pessoas
+                </a>
+                <a class="nav-link" href="rh_colab.php">
+                    <div class="sb-nav-link-icon"><i class="fa fa-users"></i></div>
+                    Colaboradores
+                </a>
+                <!-- Cadastros -->
+                <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseCadastros"
+                    aria-expanded="false" aria-controls="collapseCadastros">
+                    <div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div>
+                    Cadastros
+                    <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                </a>
+                <div class="collapse" id="collapseCadastros" data-bs-parent="#sidenavAccordion">
+                    <nav class="sb-sidenav-menu-nested nav">
+                        <a class="nav-link" href="rh_organograma.php">
+                            <i class="fa-solid fa-sitemap me-2 text-secondary"></i> Organograma
+                        </a>
+                        <a class="nav-link" href="rh_cargos.php">
+                            <i class="fa-solid fa-briefcase me-2 text-secondary"></i> Cargos
+                        </a>
+                        <a class="nav-link" href="rh_funcoes.php">
+                            <i class="fa-solid fa-tasks me-2 text-secondary"></i> Funções
+                        </a>
+                        <a class="nav-link" href="rh_subsedes.php">
+                            <i class="fa-solid fa-building me-2 text-secondary"></i> SubSedes
+                        </a>
+                        <a class="nav-link" href="rh_polos.php">
+                            <i class="fa-solid fa-building-flag me-2 text-secondary"></i> Polos
+                        </a>
+                    </nav>
+                </div>
+
+                <!-- Saúde Ocupacional -->
+                <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseSaude"
+                    aria-expanded="false" aria-controls="collapseSaude">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-user-doctor"></i></div>
+                    Saúde & Seg
+                    <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                </a>
+                <div class="collapse" id="collapseSaude" data-bs-parent="#sidenavAccordion">
+                    <nav class="sb-sidenav-menu-nested nav">
+                        <a class="nav-link" href="rh_saude.php">
+                            <i class="fa-solid fa-stethoscope me-2 text-secondary"></i> Exames
+                        </a>
+                    </nav>
+                </div>
+
+                <a class="nav-link" href="rh_reajuste.php">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+                    Reajustes $
+                </a>
+
+                <a class="nav-link" href="rh_ponto.php">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-clock"></i></div>
+                    Ponto
+                </a>
+                <!--
+                <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapsePages"
+                    aria-expanded="false" aria-controls="collapsePages">
+                    <div class="sb-nav-link-icon"><i class="fas fa-book-open"></i></div>
+                    Opções
+                    <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                </a>
+                <div class="collapse" id="collapsePages" aria-labelledby="headingTwo"
+                    data-bs-parent="#sidenavAccordion">
+                    <nav class="sb-sidenav-menu-nested nav accordion" id="sidenavAccordionPages">
+                        <a class="nav-link collapsed" href="#" data-bs-toggle="collapse"
+                            data-bs-target="#pagesCollapseAuth" aria-expanded="false" aria-controls="pagesCollapseAuth">
+                            SubOpções
+                            <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                        </a>
+                        <div class="collapse" id="pagesCollapseAuth" aria-labelledby="headingOne"
+                            data-bs-parent="#sidenavAccordionPages">
+                            <nav class="sb-sidenav-menu-nested nav">
+                                <a class="nav-link" href="#">Opção</a>
+                            </nav>
+                        </div>
+                    </nav>
+                </div>
+                -->
+                <div class="sb-sidenav-menu-heading">Addons</div>
+
+                <a class="nav-link" href="rh_docs.php">
+                    <div class="sb-nav-link-icon"><i class="fa-regular fa-folder-open"></i></div>
+                    GED
+                </a>
+
+                <a class="nav-link" href="rh_autocadastro.php">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-user-tag"></i></div>
+                    Autocadastro
+                </a>
+                <a class="nav-link" href="logout.php">
+                    <div class="sb-nav-link-icon"><i class="fas fa-sign-out"></i></div>
+                    Sair
+                </a>
+
+            </div>
+        </div>
+        <div class="sb-sidenav-footer">
+            <div class="d-flex align-items-center justify-content-center">
+                <?php echo "<i class='far fa-bookmark'></i>" . "&nbsp;" . $_SESSION['idLogin'] . " | " . substr($_SESSION['nmLogin'],0,20); ?>
+            </div>
+        </div>
+    </nav>
+</div>
+<style>
+        .sb-sidenav {
+           border-right: 1px solid #333;
+        }
+</style>

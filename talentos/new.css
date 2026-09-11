@@ -1,0 +1,156 @@
+﻿:root {
+  --brand: #0d6efd;
+  --ink: #1f2a44;
+  --bg: #f4f7fb;
+}
+
+body {
+  background: linear-gradient(180deg, #edf3ff 0%, #f7fafc 35%, #f4f7fb 100%);
+  color: var(--ink);
+}
+
+.topbar {
+  background: linear-gradient(135deg, #0b2d6b 0%, #0d6efd 100%);
+  color: #fff;
+  padding: .9rem 0;
+  box-shadow: 0 10px 24px rgba(13, 110, 253, .22);
+}
+
+.topbar .brand {
+  font-weight: 700;
+  letter-spacing: .2px;
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+}
+
+.hero {
+  background: #fff;
+  border-radius: 16px;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid #e8eef7;
+  box-shadow: 0 8px 20px rgba(20, 42, 86, .05);
+}
+
+.hero h1 {
+  font-size: clamp(1.35rem, 2.1vw, 1.9rem);
+  font-weight: 800;
+}
+
+.hero p {
+  color: #4f5e78;
+}
+
+.section-header {
+  background: #f7faff;
+  font-weight: 700;
+  color: #204180;
+}
+
+.item-card {
+  background: #f9fbff;
+  border: 1px solid #e5ecfa;
+  border-radius: 12px;
+  padding: .7rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #86b6ff;
+  box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .15);
+}
+
+#msgNovoCV {
+  position: sticky;
+  bottom: 14px;
+}
+
+.note-editable {
+  color: black !important;
+  /* Define a cor do texto como branco */
+  background-color: white;
+  /* Opcional: define um fundo escuro para melhor contraste */
+}
+
+.botaozao{
+  min-width: 200px;
+}
+
+/* Estilo para o ícone de toggle */
+.btn-toggle-icon {
+    transition: transform 0.3s ease;
+}
+
+/* Quando o elemento pai (header) NÃO estiver com a classe collapsed, o ícone gira */
+.section-header[aria-expanded="true"] .btn-toggle-icon {
+    transform: rotate(180deg);
+}
+
+.section-header {
+    user-select: none; /* Evita selecionar o texto ao clicar rápido para fechar */
+}
+
+.card-cor{
+  background-color: #d8d9e191;
+}
+
+.bloco-cor{
+  background-color: #c5c6d0e1;
+}
+
+/* Quando o link NÃO está colapsado (aberto) */
+a[aria-expanded="true"] .btn-toggle-icon {
+    transform: rotate(0deg);
+    transition: transform 0.3s ease;
+}
+
+/* Quando o link ESTÁ colapsado (fechado) */
+a[aria-expanded="false"] .btn-toggle-icon {
+    transform: rotate(-180deg);
+    transition: transform 0.3s ease;
+}
+
+.botaozinho{
+  width: 35px !important;
+}
+
+label{
+  font-weight: 700;
+}
+
+.modal-view-header {
+        background-color: #2c3e50;
+        color: white;
+        border-top-left-radius: calc(0.3rem - 1px);
+        border-top-right-radius: calc(0.3rem - 1px);
+    }
+    
+    .modal-view-header .btn-close {
+        filter: invert(1) brightness(2); /* Deixa o 'X' branco */
+    }
+
+    .label-custom {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 700;
+        color: #6c757d;
+        margin-bottom: 2px;
+        display: block;
+    }
+
+    .visCampo {
+        font-size: 1rem;
+        color: #212529;
+        font-weight: 500;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #eee; /* Linha sutil separadora */
+        margin-bottom: 15px !important;
+    }
+
+    .file-box {
+        background-color: #f8f9fa;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px dashed #dee2e6;
+    }

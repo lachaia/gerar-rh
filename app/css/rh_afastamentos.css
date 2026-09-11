@@ -1,0 +1,57 @@
+table {
+    font-size: 13px;
+}
+
+sup {
+    color: gray;
+}
+
+label{
+    font-weight: 500;
+}
+
+.invisivel{
+    display: none;
+}
+
+.visCampo {
+    border: 1px solid #ccc; /* Borda suave e discreta */
+    border-radius: 5px; /* Cantos levemente arredondados */
+    display: block; /* Ocupa a largura total disponível */
+    width: 100%; /* Garante alinhamento correto */
+    padding: 6px 10px; /* Espaçamento interno para melhor visualização */
+    background-color: #f9f9f9; /* Fundo levemente acinzentado para destacar */
+}
+
+#v_descricao {
+    height: 200px; /* Define a altura fixa */
+    overflow-y: auto; /* Adiciona scroll vertical se o conteúdo ultrapassar a altura */
+    border: 1px solid #ccc; /* Opcional: adiciona uma borda para visualização */
+    padding: 10px; /* Opcional: adiciona um espaçamento interno */
+}
+
+.note-editable {
+    color: black !important; /* Define a cor do texto como branco */
+    background-color: white; /* Opcional: define um fundo escuro para melhor contraste */
+}
+
+.ui-autocomplete {
+    z-index: 1056 !important; /* Bootstrap modal geralmente usa até 1055 */
+    position: absolute;
+    background-color: white;
+    border: 1px solid #ccc;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+#_dtRetorno{
+    background-color: rgb(216, 179, 179);
+}
+
+.status {
+    height: 28px;
+    padding-top: 0.45em !important;
+    padding-bottom: 0.45em !important;
+    font-size: 13px;
+    font-family: "Calibri";
+}

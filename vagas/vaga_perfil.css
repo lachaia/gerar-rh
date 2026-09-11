@@ -1,0 +1,89 @@
+/*
+ * vaga_perfil.php | Ficha pública da vaga
+ */
+
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+.vaga-hero {
+    background: linear-gradient(135deg, #002b5b 0%, #0056b3 100%);
+}
+
+.vaga-badge-hero {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    font-weight: 500;
+    padding: 6px 14px;
+    border-radius: 50px;
+    font-size: 0.8rem;
+}
+
+.vaga-card-principal {
+    position: relative;
+    z-index: 2;
+}
+
+.vaga-sidebar {
+    position: sticky;
+    top: 24px;
+}
+
+.vaga-secao-titulo {
+    font-weight: 700;
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--bs-border-color);
+    color: var(--bs-info);
+}
+
+.vaga-secao-titulo i {
+    color: inherit;
+    margin-right: 0.5rem;
+    width: 1.1em;
+    text-align: center;
+}
+
+.vaga-conteudo {
+    line-height: 1.7;
+}
+
+/*
+ * Descrição / Requisitos / Diferenciais / Benefícios vêm do editor rico (Summernote,
+ * preenchido por RH) como HTML - não é texto escapado. Neutraliza cor/fundo inline
+ * que o Summernote possa ter gravado (ex.: texto colado do Word), senão quebra o
+ * tema escuro (texto preto em fundo escuro fica ilegível). Escopado só ao conteúdo
+ * rico em si (.vaga-rich), não ao card inteiro - senão sobrepõe até a cor dos
+ * títulos de seção (.vaga-secao-titulo).
+ */
+.vaga-rich,
+.vaga-rich * {
+    color: inherit !important;
+    background-color: transparent !important;
+}
+
+.vaga-rich p {
+    margin-bottom: 0.75rem;
+}
+
+.vaga-rich ul,
+.vaga-rich ol {
+    padding-left: 1.4rem;
+    margin-bottom: 0.75rem;
+}
+
+.vaga-rich li {
+    margin-bottom: 0.25rem;
+}
+
+.vaga-rich strong,
+.vaga-rich b {
+    font-weight: 700;
+}
+
+@media (max-width: 991.98px) {
+    .vaga-sidebar {
+        position: static;
+    }
+}

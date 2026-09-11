@@ -1,0 +1,35 @@
+label {
+    font-weight: bold;
+}
+
+.obrigatorio {
+    border-color: red;
+}
+
+.campo-destaque {
+    font-size: 16px;
+    font-weight: 500;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 4px;
+    margin-bottom: 8px;
+    color: darkblue;
+    background-color: rgba(201, 236, 240, 0.603);
+    text-align: center;
+}
+
+.card-body {
+    filter: brightness(0.9);
+    /* Diminui o brilho */
+}
+
+.cartao {
+    background-color: #4682b4;
+}
+
+.icon {
+    font-size: 16px;
+}
+
+.nowrap {
+    white-space: nowrap;
+}

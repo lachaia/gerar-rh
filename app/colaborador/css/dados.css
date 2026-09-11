@@ -1,0 +1,21 @@
+.modal-header {
+    background-color: rgb(116, 116, 224);
+    color: white;
+}
+
+.card-header {
+    background-color: rgba(18, 105, 168, 0.648);
+    color: white;
+}
+
+
+label,
+.titulo {
+    font-weight: 500;
+    color: rgba(120, 222, 233, 1);
+}
+
+.cartao {
+    color: rgba(208, 233, 236, 1);
+    background-color: rgba(111, 114, 116, 0.65);
+}

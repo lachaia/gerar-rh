@@ -1,0 +1,50 @@
+table {
+    font-size: 13px;
+}
+
+sup {
+    color: gray;
+}
+
+label{
+    font-weight: 500;
+}
+
+.invisivel{
+    display: none;
+}
+
+.visCampo {
+    border: 1px solid #ccc; /* Borda suave e discreta */
+    border-radius: 5px; /* Cantos levemente arredondados */
+    display: block; /* Ocupa a largura total disponível */
+    width: 100%; /* Garante alinhamento correto */
+    padding: 6px 10px; /* Espaçamento interno para melhor visualização */
+    background-color: #f9f9f9; /* Fundo levemente acinzentado para destacar */
+}
+
+#v_motivo {
+    height: 150px; /* Define a altura fixa corretamente */
+    overflow-y: auto; /* Adiciona scroll vertical se o conteúdo ultrapassar a altura */
+}
+#v_motivo::-webkit-scrollbar {
+    width: 8px; /* Largura da barra de rolagem */
+}
+#v_motivo::-webkit-scrollbar-thumb {
+    background-color: #888; /* Cor do "polegar" da barra de rolagem */
+    border-radius: 10px; /* Cantos arredondados para o "polegar" */
+}
+
+.note-editable {
+    color: black !important; /* Define a cor do texto como branco */
+    background-color: white; /* Opcional: define um fundo escuro para melhor contraste */
+}
+
+.status {
+    height: 28px;
+    padding-top: 0.45em !important;
+    padding-bottom: 0.45em !important;
+    font-size: 13px;
+    font-family: "Calibri";
+    min-width: 100px;
+}

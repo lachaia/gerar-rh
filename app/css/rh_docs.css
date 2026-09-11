@@ -1,0 +1,35 @@
+table {
+    font-size: 13px;
+}
+
+.fs-12 {
+    font-size: 12px;
+}
+
+.fs-13 {
+    font-size: 13px;
+}
+
+.invisivel {
+    display: none;
+}
+
+label {
+    font-size: 12px;
+    font-weight: 700;
+}
+
+#inc_ocr,
+#alt_ocr {
+    min-height: 400px;
+}
+
+sup {
+    color: rgba(255, 0, 0, 0.633);
+}
+
+.ui-autocomplete {
+    z-index: 1055 !important;
+    /* um valor acima do z-index da modal do Bootstrap (geralmente 1050) */
+    position: absolute;
+}
