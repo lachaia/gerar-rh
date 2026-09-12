@@ -5,7 +5,17 @@
 //
 
 header('Content-Type: application/json; charset=utf-8');
-header('Access-Control-Allow-Origin: *');
+
+// Só é chamado internamente, servidor->servidor, por outros arquivos do
+// próprio sistema via file_get_contents() na URL pública (nunca por
+// JavaScript do navegador) — por isso não precisa de CORS aberto, e a
+// proteção possível é restringir a chamada ao próprio servidor.
+if (($_SERVER['REMOTE_ADDR'] ?? '') !== ($_SERVER['SERVER_ADDR'] ?? '!')
+    && ($_SERVER['REMOTE_ADDR'] ?? '') !== '127.0.0.1') {
+    http_response_code(403);
+    echo json_encode(['erro' => 'Acesso negado.']);
+    exit;
+}
 
 include dirname(__DIR__) . '/includes/conexao_gerar.php';
 

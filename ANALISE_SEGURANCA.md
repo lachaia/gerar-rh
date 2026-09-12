@@ -10,8 +10,7 @@ Os achados estão organizados por severidade. Dentro de cada nível, por categor
 
 ## CRÍTICO — ação imediata
 
-### 11. `app/api/api_supervisor.php` — PII de toda a empresa sem autenticação, CORS aberto
-`header('Access-Control-Allow-Origin: *')`, sem `session_start()`/checagem alguma. `?id=1..N` devolve nome, e-mail corporativo, telefone e foto de qualquer colaborador e do respectivo gestor — de qualquer site, sem login.
+✅ Todos os itens CRÍTICO (2 a 11) foram corrigidos e commitados — ver histórico do git e o "Plano de ação sugerido" abaixo para o resumo de cada um. Os achados restantes (ALTO/MÉDIO/BAIXO abaixo) ainda estão pendentes.
 
 ---
 
@@ -78,6 +77,7 @@ O token de assinatura (`bin2hex(random_bytes(16))`, gerado corretamente) identif
 | `talentos/` | — (padrão de sessão é bem aplicado) | — | esqueci_senha.php (idEmpresa) | ~~candidatos_aj1_fa, candidatos_aj3_con, new_aj8_fa, new_aj13_conq~~ ✅ corrigido (item 4) |
 | `recrutamento/` | — | vaga_fluxo_mover_aj, candidato_fluxo_mover_aj, candidato_cv_aj (sem scope de subsede) | — | — |
 | `vagas/` | (público por design, sem PII exposta) | — | — | — |
+| `app/api/` | ~~api_supervisor.php~~ ✅ corrigido (item 11): removido `Access-Control-Allow-Origin: *` (não fazia sentido — só é chamado servidor->servidor) e restringido a chamada vinda do próprio servidor, mesmo padrão do item 5/6 | — | — | — |
 
 > Nota: item 4 corrigiu, de brinde, o SQL Injection nas queries de `rh_documentos`/upload logo ao lado do código de upload em vários arquivos de CIPA/Brigada. O item 8 fechou o restante — todas as queries `DELETE`/`INSERT`/`UPDATE` com `id` cru (reunião, ação, membro, documento) nesses módulos, mais `login_aj2.php`, `rh_reajuste_aj1.php`, `cron_banco_horas.php` e `app/termos/index_aj12.php`/`index_aj14.php`. `dados_aj4` (colaborador) e `gestor/ponto_aj` continuam abertos — são achados de IDOR com SQLi combinado, fora do escopo do item 8.
 >
@@ -96,8 +96,12 @@ O token de assinatura (`bin2hex(random_bytes(16))`, gerado corretamente) identif
 5. ✅ ~~Corrigir o SQL Injection não autenticado em `login_aj2.php`, `rh_reajuste_aj1.php`, `cron_banco_horas.php` e nos módulos CIPA/Brigada/Termos~~ — feito (item 8): todas as queries `DELETE`/`INSERT`/`UPDATE` que concatenavam `id` (ou nome de arquivo) cru nesses módulos agora usam bind de parâmetro; `login_aj2.php` e `rh_reajuste_aj1.php` também passaram a exigir sessão/parâmetro validado, e `cron_banco_horas.php` só aceita chamada com sessão válida ou vinda do próprio servidor (mesmo padrão do item 5/6).
 6. ✅ ~~Adicionar checagem de `idGrupo` nos módulos CIPA/Brigada/Termos~~ — feito (item 9): CIPA e Brigada agora exigem a flag por usuário (`dcCIPA`/`dcBrigada`) ou Super Usuário (grupo 9) em **todos** os 34+33 arquivos PHP dos dois módulos (nenhum ficou de fora); Termos exige `idGrupo` em (4,7,9), com exceção proposital do fluxo público de assinatura (token+senha, ver nota na tabela de módulos). De passagem: corrigido o bug de `app/termos/login_auth.php` que hardcodava `idGrupo=2` (impedia a própria checagem de funcionar para quem loga pela tela de Termos) e adicionado `exit()` faltante depois de 21 `header('Location...')` que só "funcionavam" por acidente (erro fatal por `$conn` indefinido) — ambos eram pré-requisitos para a correção funcionar de verdade.
 7. ✅ ~~Corrigir o vazamento de denúncias de ouvidoria/acolhimento~~ — feito (item 10): ficha, grid, excluir, fechar e linha do tempo agora exigem grupo 3 (Psicólogos) ou 9 (Super); os 3 formulários de envio continuam públicos de propósito (denúncia anônima). Corrigido também um bug de precedência de operador em `rh_ficha_ouvidoria.php` que fazia a checagem de grupo pré-existente não bloquear ninguém na prática, e centralizada a chave AES (antes hardcoded em 7 arquivos) em `OUVIDORIA_CRYPTO_KEY` no `.env`.
-8. ⬜ Revisar sistematicamente os arquivos que usam `extract($_POST)`/`extract($dados)` e trocar por atribuição explícita + bind de parâmetro em toda query. *(o SQLi de CIPA/Brigada/Termos já foi fechado no item 8; o restante — `rh_docs_edt_aj.php`/`rh_docs_eml_aj.php`, `dados_aj4`, `gestor/ponto_aj` — segue pendente, ver seção ALTO.)*
-9. ⬜ Adicionar token CSRF (ou pelo menos `SameSite=Strict/Lax` nos cookies de sessão) como camada adicional.
-10. ⬜ Tratar os demais IDORs (ponto, gestor, recrutamento) conforme a criticidade do dado exposto em cada caso.
+8. ✅ ~~Fechar `app/api/api_supervisor.php` (PII sem autenticação, CORS aberto)~~ — feito (item 11): removido o CORS aberto (desnecessário — só é chamado servidor→servidor via `file_get_contents()`, nunca por JS de navegador) e restringida a chamada ao próprio servidor, mesmo padrão usado nos itens 5/6/8 para APIs internas equivalentes.
+
+**Com isso, todos os itens CRÍTICO (2 a 11) estão corrigidos.** Segue o que falta, todo em severidade ALTO/MÉDIO/BAIXO:
+
+9. ⬜ Revisar sistematicamente os arquivos que usam `extract($_POST)`/`extract($dados)` e trocar por atribuição explícita + bind de parâmetro em toda query. *(o SQLi de CIPA/Brigada/Termos já foi fechado no item 8; o restante — `rh_docs_edt_aj.php`/`rh_docs_eml_aj.php`, `dados_aj4`, `gestor/ponto_aj` — segue pendente, ver seção ALTO.)*
+10. ⬜ Adicionar token CSRF (ou pelo menos `SameSite=Strict/Lax` nos cookies de sessão) como camada adicional.
+11. ⬜ Tratar os demais IDORs (ponto, gestor, recrutamento) conforme a criticidade do dado exposto em cada caso.
 
 Nenhuma alteração foi feita no código ou no banco durante a análise original — os itens marcados ✅ acima já foram corrigidos e commitados desde então; o restante é o que falta priorizar.
