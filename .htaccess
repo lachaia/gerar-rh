@@ -1,0 +1,26 @@
+# .htaccess | Endurece o cookie de sessão do PHP para todo o site.
+#
+# O sistema não tinha nenhuma configuração de HttpOnly/SameSite — o
+# navegador aplicava seu próprio default (hoje, na prática, SameSite=Lax
+# na maioria dos navegadores modernos), mas isso não era garantido pela
+# aplicação. Isso amplia o impacto de qualquer XSS (cookie acessível via
+# JS) e não dá nenhuma camada extra contra CSRF.
+#
+# SameSite=Lax (não Strict) porque vários fluxos do sistema dependem de
+# links por e-mail abertos com o navegador já logado (ex.: aprovação de
+# vaga, aprovação de férias) — Strict bloquearia o cookie de sessão
+# nesse tipo de navegação de topo vinda de fora do site.
+#
+# Session.cookie_secure fica de fora de propósito: forçar isso aqui
+# quebraria o acesso local via HTTP (XAMPP em desenvolvimento). Em
+# produção (https://rh.gerar.org.br, sempre HTTPS) o ideal é configurar
+# session.cookie_secure=1 direto no php.ini/vhost do servidor.
+
+<IfModule mod_php.c>
+    php_value session.cookie_samesite "Lax"
+    php_flag session.cookie_httponly On
+</IfModule>
+<IfModule mod_php7.c>
+    php_value session.cookie_samesite "Lax"
+    php_flag session.cookie_httponly On
+</IfModule>
