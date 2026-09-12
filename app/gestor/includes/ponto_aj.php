@@ -15,14 +15,16 @@ if (isset($_SESSION['idLogin'])) {
 }
 
 $chk_pendentes = $_POST['chk_pendentes'] ?? 0;
-$supervisor_id = $_POST['supervisor_id'] ?? 2;
+// supervisor_id é sempre o do gestor logado — nunca o que o cliente mandar,
+// senão qualquer gestor consegue ver solicitações de qualquer outro.
+$supervisor_id = (int) ($_SESSION['idColab'] ?? 0);
 
-$onde = "supervisor_id = $supervisor_id AND status = 'AGUARDANDO'";
+$onde = "supervisor_id = :supervisor_id AND status = 'AGUARDANDO'";
 if( $chk_pendentes == 0 ){
-    $onde = "supervisor_id = $supervisor_id";
+    $onde = "supervisor_id = :supervisor_id";
 }
 
-$pesquisa = "SELECT P.nome, S.* 
+$pesquisa = "SELECT P.nome, S.*
     FROM rh_ponto_solicitacoes S
     INNER JOIN rh_colaboradores C on C.idColab = S.colaborador_id
     INNER JOIN rh_pessoas P on P.idPessoa = C.idPessoa
@@ -30,6 +32,7 @@ $pesquisa = "SELECT P.nome, S.*
     ORDER BY data_hora DESC";
 
 $stmt = $conn->prepare($pesquisa);
+$stmt->bindParam(':supervisor_id', $supervisor_id, PDO::PARAM_INT);
 $stmt->execute();
 $recordsFiltered = $stmt->rowCount();
 

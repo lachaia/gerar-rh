@@ -17,6 +17,7 @@ if (isset($_SESSION['idLogin'])) {
     $nmLogin = $_SESSION['nmLogin'];
 } else {
     header("location: ../logout.php");
+    exit();
 }
 
 $paramtros = filter_input_array(INPUT_POST, FILTER_DEFAULT);
@@ -43,6 +44,12 @@ die(  json_encode($retorno) );
     $stmt->bindParam(':solicitacao_id', $solicitacao_id);
     $stmt->execute();
     $solicitacao = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$solicitacao || (int) $solicitacao['supervisor_id'] !== (int) ($_SESSION['idColab'] ?? 0)) {
+        http_response_code(403);
+        die(json_encode(['status' => false, 'msg' => 'Acesso negado.']));
+    }
+
     $colaborador_id = $solicitacao['colaborador_id'];
 
 //

@@ -20,9 +20,19 @@ if (empty($id)) {
 
 if (!isset($_SESSION['idLogin'])) {
     header("location: logout.php");
+    exit();
 } else {
     include_once "../includes/conexao_gerar.php";
     $_idUsuario = $_SESSION['idUsuario'];
+}
+
+//
+//- SÓ PODE VER A FICHA DE QUEM É SUBORDINADO (direto ou indireto) DO GESTOR LOGADO
+//
+$listaColabs = getSubordinados($_SESSION['idOrgao'] ?? 0, $conn);
+if (!in_array((int) $id, $listaColabs, true)) {
+    http_response_code(403);
+    die("<h1>ACESSO NEGADO</h1>");
 }
 
 //
@@ -903,4 +913,60 @@ function tipo_prazo($id)
     if ($id == "0") return "Nenhum";
     if ($id == "I") return "Indeterminado";
     if ($id == "D") return "Determinado";
+}
+
+function getSubordinados($idOrgao, $pdo) {
+    // 1. Buscar a linha do organograma do gestor
+    $sql = "SELECT * FROM rh_organograma WHERE idOrgao = :id";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([':id' => $idOrgao]);
+    $gestor = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$gestor) {
+        return [];
+    }
+
+    // 2. Descobrir em qual nível o gestor está (último nível > 0)
+    $nivelGestor = 0;
+    for ($i = 1; $i <= 7; $i++) {
+        if (!empty($gestor["nivel_$i"]) && $gestor["nivel_$i"] > 0) {
+            $nivelGestor = $i;
+        }
+    }
+
+    // 3. Montar condição dinâmica para os níveis anteriores
+    $conds = [];
+    $params = [];
+
+    for ($i = 1; $i <= $nivelGestor; $i++) {
+        $conds[] = "O.nivel_$i = :n$i";
+        $params[":n$i"] = $gestor["nivel_$i"];
+    }
+
+    // 4. O próximo nível precisa ser > 0
+    $proximoNivel = $nivelGestor + 1;
+    if ($proximoNivel <= 7) {
+        $conds[] = "O.nivel_$proximoNivel > 0";
+    }
+
+    // 5. Montar SQL final
+    $where = implode(" AND ", $conds);
+
+    $sql = "
+        SELECT C.idColab
+        FROM rh_colaboradores C
+        INNER JOIN rh_organograma O ON O.idOrgao = C.idOrgao
+        WHERE $where
+    ";
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+
+    // 6. Extrair apenas os IDs em um vetor simples
+    $ids = [];
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $ids[] = $row["idColab"];
+    }
+
+    return $ids;
 }

@@ -6,6 +6,11 @@
 
 session_start();
 
+if (empty($_SESSION['idLogin']) || empty($_SESSION['idColab'])) {
+    http_response_code(403);
+    die(json_encode(["status" => false, "msg" => "Sessão inválida."]));
+}
+
 include_once "../../includes/parametros.php";
 
 $idModulo = 16; // Portal do Gestor
@@ -23,6 +28,12 @@ if (isset($parametros)) {
     ];
     die(json_encode($retorno));
 }
+
+// idGestor é sempre o do gestor logado — nunca o que o cliente mandar, senão
+// qualquer gestor consegue "aprovar" com a própria senha férias de quem não
+// é da sua equipe.
+$idGestor = (int) $_SESSION['idColab'];
+$idFerias = (int) $idFerias;
 
 //-- PARCELAS SELECIONADAS PARA APROVAÇÃO
 $parcelas = isset($_POST['parcelas']) ? explode(',', $_POST['parcelas']) : [];
@@ -67,13 +78,22 @@ die( json_encode( $retorno, JSON_PRETTY_PRINT ) );
 //
 $sql = "SELECT F.idColab as idColaborador, P.email_corporativo as emailColaborador, P.nome as nmColaborador
                 FROM RH.rh_ferias F
-                INNER JOIN rh_colaboradores C on C.idColab = F.idColab 
+                INNER JOIN rh_colaboradores C on C.idColab = F.idColab
                 INNER JOIN rh_pessoas P on P.idPessoa = C.idPessoa
-                where F.id=$idFerias";
+                where F.id = :idFerias";
 $stmt = $conn->prepare($sql);
+$stmt->bindParam(':idFerias', $idFerias, PDO::PARAM_INT);
 $stmt->execute();
 $dados = $stmt->fetch(PDO::FETCH_ASSOC);
 extract($dados);
+
+//- SÓ PODE APROVAR FÉRIAS DE QUEM É SUBORDINADO (direto ou indireto) DO GESTOR LOGADO
+//
+$listaColabs = getSubordinados($_SESSION['idOrgao'] ?? 0, $conn);
+if (empty($idColaborador) || !in_array((int) $idColaborador, $listaColabs, true)) {
+    http_response_code(403);
+    die(json_encode(["status" => false, "msg" => "Acesso negado."]));
+}
 
 //- Login & Senha do Supervisor
 //
@@ -231,4 +251,60 @@ if (password_verify($senha, $hash_salvo)) {
 }
 
 die(json_encode($retorno));
+
+function getSubordinados($idOrgao, $pdo) {
+    // 1. Buscar a linha do organograma do gestor
+    $sql = "SELECT * FROM rh_organograma WHERE idOrgao = :id";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([':id' => $idOrgao]);
+    $gestor = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$gestor) {
+        return [];
+    }
+
+    // 2. Descobrir em qual nível o gestor está (último nível > 0)
+    $nivelGestor = 0;
+    for ($i = 1; $i <= 7; $i++) {
+        if (!empty($gestor["nivel_$i"]) && $gestor["nivel_$i"] > 0) {
+            $nivelGestor = $i;
+        }
+    }
+
+    // 3. Montar condição dinâmica para os níveis anteriores
+    $conds = [];
+    $params = [];
+
+    for ($i = 1; $i <= $nivelGestor; $i++) {
+        $conds[] = "O.nivel_$i = :n$i";
+        $params[":n$i"] = $gestor["nivel_$i"];
+    }
+
+    // 4. O próximo nível precisa ser > 0
+    $proximoNivel = $nivelGestor + 1;
+    if ($proximoNivel <= 7) {
+        $conds[] = "O.nivel_$proximoNivel > 0";
+    }
+
+    // 5. Montar SQL final
+    $where = implode(" AND ", $conds);
+
+    $sql = "
+        SELECT C.idColab
+        FROM rh_colaboradores C
+        INNER JOIN rh_organograma O ON O.idOrgao = C.idOrgao
+        WHERE $where
+    ";
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+
+    // 6. Extrair apenas os IDs em um vetor simples
+    $ids = [];
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $ids[] = $row["idColab"];
+    }
+
+    return $ids;
+}
 
