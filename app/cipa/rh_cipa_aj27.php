@@ -4,6 +4,11 @@
 // (C)haia, 16/07/2025
 
 session_start();
+if (!isset($_SESSION['idLogin']) || (empty($_SESSION['dcCIPA']) && (int) ($_SESSION['idGrupo'] ?? 0) !== 9)) {
+    http_response_code(403);
+    die(json_encode(["status" => false, "msg" => "Acesso negado."]));
+}
+
 
 $idModulo = 11; // CIPA
 

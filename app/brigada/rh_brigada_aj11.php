@@ -42,7 +42,7 @@ $retorno = [
 ];
 die( json_encode($retorno) );
 */
-if( isset($_SESSION['idLogin']) ){
+if( isset($_SESSION['idLogin']) && (!empty($_SESSION['dcBrigada']) || (int) ($_SESSION['idGrupo'] ?? 0) === 9) ){
     $idLogin = $_SESSION['idLogin'];
     $idSubSede = $_SESSION['idSubSede'];
     $criado_por = $_SESSION['nmLogin'];

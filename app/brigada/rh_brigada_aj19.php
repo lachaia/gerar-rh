@@ -7,12 +7,13 @@ $idModulo = 10; // Brigada de Emergência
 
 session_start();
 
-if( isset($_SESSION['idLogin'])){
+if( isset($_SESSION['idLogin']) && (!empty($_SESSION['dcBrigada']) || (int) ($_SESSION['idGrupo'] ?? 0) === 9) ){
     $idLogin = $_SESSION['idLogin'];
     include_once "../includes/conexao_gerar.php";
     include_once "../includes/f_logs.php";
 } else{
     header("location: ../logout.php");
+    exit();
 }
 
 f_log("CON", "Consulta grade das AÇÕES da Brigada", "rh_brigada_acoes", $idModulo, 0);

@@ -5,6 +5,11 @@
 //  
 
 session_start();
+if (!isset($_SESSION['idLogin']) || (empty($_SESSION['dcBrigada']) && (int) ($_SESSION['idGrupo'] ?? 0) !== 9)) {
+    http_response_code(403);
+    die('');
+}
+
 
 $idModulo = 10; // Brigada
 

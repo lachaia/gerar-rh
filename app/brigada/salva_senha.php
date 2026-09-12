@@ -5,6 +5,11 @@
 //
 
 session_start();
+if (!isset($_SESSION['idLogin'])) {
+    http_response_code(403);
+    die(json_encode(["status" => false, "msg" => "Acesso negado."]));
+}
+
 
 $idUsuario = $_SESSION['idUsuario'];
 

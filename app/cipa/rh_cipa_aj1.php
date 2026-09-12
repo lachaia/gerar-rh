@@ -7,12 +7,13 @@ $idModulo = 11; // CIPA
 
 session_start();
 
-if( isset($_SESSION['idLogin'])){
+if( isset($_SESSION['idLogin']) && (!empty($_SESSION['dcCIPA']) || (int) ($_SESSION['idGrupo'] ?? 0) === 9) ){
     $idLogin = $_SESSION['idLogin'];
     include_once "../includes/conexao_gerar.php";
     include_once "../includes/f_logs.php";
 } else{
     header("location: ../logout.php");
+    exit();
 }
 
 f_log("CON", "Consulta grade dos Cipeiros", "rh_cipeiros", $idModulo, 0);

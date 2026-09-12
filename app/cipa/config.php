@@ -8,7 +8,7 @@ $idModulo = 11; // rh_condfig.php
 
 session_start();
 
-if (!isset($_SESSION['idLogin'])) {
+if (!isset($_SESSION['idLogin']) || (empty($_SESSION['dcCIPA']) && (int) ($_SESSION['idGrupo'] ?? 0) !== 9)) {
     header('Location: login.php');
     exit();
 } else {

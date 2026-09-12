@@ -6,6 +6,11 @@
 
 session_start();
 
+if (!isset($_SESSION['idLogin']) || !in_array((int) ($_SESSION['idGrupo'] ?? 0), [4, 7, 9], true)) {
+    http_response_code(403);
+    die(json_encode(["status" => false, "msg" => "Acesso negado."]));
+}
+
 $parametros = filter_input_array(INPUT_POST, FILTER_DEFAULT);
 if (isset($parametros)) extract($parametros);
 

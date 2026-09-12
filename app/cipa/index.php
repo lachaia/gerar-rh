@@ -7,7 +7,7 @@ session_start();
 
 $idModulo = 11; // CIPA
 
-if (!isset($_SESSION['idLogin'])) {
+if (!isset($_SESSION['idLogin']) || (empty($_SESSION['dcCIPA']) && (int) ($_SESSION['idGrupo'] ?? 0) !== 9)) {
     header('location: ../logout.php');
     exit();
 } else {

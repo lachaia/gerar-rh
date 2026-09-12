@@ -20,7 +20,7 @@ if (!in_array($abaAtiva, $abasPermitidas, true)) {
     $abaAtiva = 'termos';
 }
 
-if (!isset($_SESSION['idLogin'])) {
+if (!isset($_SESSION['idLogin']) || !in_array((int) ($_SESSION['idGrupo'] ?? 0), [4, 7, 9], true)) {
     header("Location: login.php");
     exit();
 }

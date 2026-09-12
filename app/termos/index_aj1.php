@@ -7,12 +7,13 @@ $idModulo = 19; // Equipamentos
 
 session_start();
 
-if( isset($_SESSION['idLogin'])){
+if( isset($_SESSION['idLogin']) && in_array((int) ($_SESSION['idGrupo'] ?? 0), [4, 7, 9], true) ){
     $idLogin = $_SESSION['idLogin'];
     include_once "../includes/conexao_gerar.php";
     include_once "../includes/f_logs.php";
 } else{
     header("location: logout.php");
+    exit();
 }
 
 //f_log("CON", "Consulta grade do Organograma Empresarial", "rh_organograma", $idModulo, 0);

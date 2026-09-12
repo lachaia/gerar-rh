@@ -55,7 +55,7 @@ include "../includes/f_login.php";
         $_SESSION['idPessoa'     ] = $rows[0]["idPessoa"];
         $_SESSION['nmLogin'      ] = $rows[0]["login"];
         $_SESSION['nmUsuario'    ] = $rows[0]["nome"];
-        $_SESSION['idGrupo'      ] = 2; //- Normal --- //$rows[0]["idUsuarioGrupo"];
+        $_SESSION['idGrupo'      ] = (int) $rows[0]["idUsuarioGrupo"];
         $_SESSION['email'        ] = $rows[0]["email"];      //-- necessária para o SMTP
         $_SESSION['chaveApp'     ] = $rows[0]["chaveApp"];   //-- necessária para o SMTP
         $_SESSION['idSubSede'    ] = $rows[0]["idSubSede"];   

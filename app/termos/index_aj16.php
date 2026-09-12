@@ -7,7 +7,7 @@
 session_start();
 header('Content-Type: application/json; charset=utf-8');
 
-if (!isset($_SESSION['idLogin'])) {
+if (!isset($_SESSION['idLogin']) || !in_array((int) ($_SESSION['idGrupo'] ?? 0), [4, 7, 9], true)) {
     echo json_encode([
         'status' => false,
         'msg' => 'Sessão expirada. Faça login novamente.'

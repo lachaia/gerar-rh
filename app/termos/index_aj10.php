@@ -137,7 +137,7 @@ foreach ($arraysObrigatorios as $array) {
     }
 }
 
-if (isset($_SESSION['idLogin'])) {
+if (isset($_SESSION['idLogin']) && in_array((int) ($_SESSION['idGrupo'] ?? 0), [4, 7, 9], true)) {
     $idLogin = $_SESSION['idLogin'];
     $nmLogin = $_SESSION['nmLogin'];
     $idEmpresa = $_SESSION['idEmpresa'];
@@ -148,6 +148,7 @@ if (isset($_SESSION['idLogin'])) {
     include_once "../includes/f_upload_seguro.php";
 } else {
     header("location: logout.php");
+    exit();
 }
 
 //

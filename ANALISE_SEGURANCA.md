@@ -10,9 +10,6 @@ Os achados estão organizados por severidade. Dentro de cada nível, por categor
 
 ## CRÍTICO — ação imediata
 
-### 9. Ausência sistêmica de controle de acesso por grupo em módulos inteiros
-Confirmado por grep exaustivo: **0 dos 31 endpoints de `app/cipa/`, 0 dos 30 de `app/brigada/`, e nenhum de `app/termos/`** checam `$_SESSION['idGrupo']`. Esses módulos são pensados para perfis restritos (CIPA, Brigada, TI/RH — grupos 4/7/9 no caso de Termos), mas como a checagem de grupo simplesmente não existe no backend, **qualquer conta autenticada no sistema principal — inclusive grupo 8 "Candidatos externos" — pode acessar essas telas e seus endpoints diretamente**, incluindo o painel de "Usuários" de cada módulo. A restrição do login específico de `app/termos/login_auth.php` (grupos 4/7/9) é irrelevante, porque quem já está logado pelo login principal do RH cai na mesma sessão compartilhada e pode simplesmente navegar direto para `app/termos/index.php`.
-
 ### 10. Vazamento de denúncias de ouvidoria (dados descriptografados) sem autenticação
 `app/rh_ficha_ouvidoria_aj.php` não tem checagem de sessão nem de grupo — decripta e devolve nome, e-mail, telefone, relato e nomes de testemunhas de qualquer denúncia de assédio/má conduta por `id`, embora a **página** (`rh_ficha_ouvidoria.php`) corretamente restrinja a acesso aos grupos 3 (Psicólogos)/9 (Super). A chave AES usada para descriptografar está hardcoded e duplicada em 3 arquivos (`'minha_senha_32_chars_segura_x!'`), então também é trivialmente recuperável do código-fonte.
 
@@ -55,7 +52,7 @@ O token de assinatura (`bin2hex(random_bytes(16))`, gerado corretamente) identif
 ## MÉDIO
 
 - **`extract($_POST)`/`extract($dados)` disseminado em ~119 arquivos** — qualquer chave do POST vira variável PHP local, inclusive sobrescrevendo variáveis já existentes no escopo (como visto no item de `rh_docs_inc_aj.php` acima). É a causa raiz de vários dos achados de IDOR/SQLi. Recomenda-se substituir por atribuição explícita de cada campo esperado.
-- **`header('Location: ...')` sem `exit()`/`die()`** depois, em dezenas de arquivos de CIPA/Brigada/Termos (`aj1`, `aj8`, `aj13`, `aj19`, `aj24/25`, `aj31` e equivalentes) — hoje o request só quebra com erro fatal (porque `$conn` não existe fora do `if`), mas é um controle de acesso que depende de um acidente de implementação, não de design; se `display_errors` estiver ligado, vaza caminho de arquivo/stack trace.
+- ~~`header('Location: ...')` sem `exit()`/`die()` depois, em dezenas de arquivos de CIPA/Brigada/Termos~~ ✅ corrigido (item 9), junto com a checagem de grupo — ver abaixo.
 - **Nomes de arquivo previsíveis** em upload de foto de perfil (`"usu_" . idUsuario . "." . extensao`, sem parte aleatória) — facilita adivinhar onde um upload malicioso cairia.
 - **Cookies de sessão sem `HttpOnly`/`Secure`/`SameSite`** configurados nem no `php.ini` nem via `session_set_cookie_params()` no código — amplia o impacto de qualquer XSS (furto de cookie) e de CSRF.
 - **`rh_cv_conq.idLogin`** gravado como `varchar` recebendo `"0"`/`"66"` como texto (mencionado também no diagnóstico de FKs) — não é vulnerabilidade em si, mas é sintoma do mesmo padrão de tipagem solta que facilita os bugs acima.
@@ -64,7 +61,7 @@ O token de assinatura (`bin2hex(random_bytes(16))`, gerado corretamente) identif
 
 - `recrutamento/inc/testar_usuario.php` — enumeração de login/e-mail de recrutador sem autenticação (dá feedback "usuário existe/não existe" pré-login).
 - `app/termos/teste.php` — arquivo de debug esquecido em produção, dispara envio de e-mail real sem autenticação nem parâmetros.
-- `app/termos/login_auth.php:58` — hardcoda `$_SESSION['idGrupo'] = 2` independente do grupo real (bug funcional, não é o vetor de exploração principal já que a sessão vem do login central, mas mostra que esse valor nunca foi confiável nesse módulo).
+- ~~`app/termos/login_auth.php:58` — hardcodava `$_SESSION['idGrupo'] = 2`~~ ✅ corrigido (item 9) — precisava guardar o grupo real para a checagem de acesso do módulo funcionar também para quem loga pela tela própria de Termos.
 - Injeção de cabeçalho de e-mail — **não explorável hoje**: o PHPMailer está na versão 6.8.0, que já neutraliza `\r\n` em `Subject`/destinatário internamente.
 - Command Injection — **nada encontrado**: os únicos `exec`/`popen` do código são de string fixa (helper de terminal) ou uso interno do PHPMailer, sem input do usuário.
 
@@ -75,9 +72,9 @@ O token de assinatura (`bin2hex(random_bytes(16))`, gerado corretamente) identif
 | Módulo | Sem checagem de sessão | Sem checagem de grupo (`idGrupo`) | SQLi confirmada | Upload sem whitelist |
 |---|---|---|---|---|
 | `app/includes/` (núcleo) | ~13 arquivos (docs, pessoa, ouvidoria, cv, reajuste) | rh_saude*, rh_rescisao* (só checam sessão) | ~~login_aj2~~ ✅ corrigido (item 8); rh_docs_edt/eml_aj (aberto, ver ALTO) | ~~rh_perfil_aj, rh_usuarios_inc_aj, rh_pessoa_aj4/7/13, rh_colab_aj3/4, rh_docs_inc_aj~~ ✅ corrigido (item 4) |
-| `app/cipa/` | 10 de 31 arquivos | **0 de 31** | ~~aj4,12,16,18,22,23,29~~ ✅ corrigido (item 8) | ~~aj3,6,15,20,27,30~~ ✅ corrigido (item 4) |
-| `app/brigada/` | 10 de 30 arquivos | **0 de 30** | ~~aj4,12,16,18,22,23,29~~ ✅ corrigido (item 8) | ~~aj3,6,15,18,20,22,27,30~~ ✅ corrigido (item 4) |
-| `app/termos/` | aj9,aj12,aj13,aj14,aj18 | **nenhum** (login próprio existe mas é bypassável pela sessão central) | ~~aj12, aj14~~ ✅ corrigido (item 8) | ~~aj10,aj13,aj16~~ ✅ corrigido (item 4) |
+| `app/cipa/` | ~~10 de 31 arquivos~~ ✅ corrigido (item 9) | ~~0 de 31~~ ✅ corrigido (item 9): exige `dcCIPA=1` ou Super (grupo 9) | ~~aj4,12,16,18,22,23,29~~ ✅ corrigido (item 8) | ~~aj3,6,15,20,27,30~~ ✅ corrigido (item 4) |
+| `app/brigada/` | ~~10 de 30 arquivos~~ ✅ corrigido (item 9) | ~~0 de 30~~ ✅ corrigido (item 9): exige `dcBrigada=1` ou Super (grupo 9) | ~~aj4,12,16,18,22,23,29~~ ✅ corrigido (item 8) | ~~aj3,6,15,18,20,22,27,30~~ ✅ corrigido (item 4) |
+| `app/termos/` | ~~aj9,aj12,aj13,aj14,aj18~~ ✅ corrigido (item 9, exceto aj12/aj14 que continuam de propósito sem sessão — ver nota) | ~~nenhum~~ ✅ corrigido (item 9): exige `idGrupo` em (4,7,9) | ~~aj12, aj14~~ ✅ corrigido (item 8) | ~~aj10,aj13,aj16~~ ✅ corrigido (item 4) |
 | `app/ponto/` | registrar_ponto, ultimas_batidas(_web), edita_cartao_aj2/3, solicitacoes_aj, localizacao_aj/aj1 | — | ~~cron_banco_horas.php~~ ✅ corrigido (item 8) | — |
 | `app/colaborador/` `app/gestor/` | dados_aj1, index_aj1, ferias_aj1 | ficha_colab (sem scope de equipe) | dados_aj4, gestor/ponto_aj | — |
 | `talentos/` | — (padrão de sessão é bem aplicado) | — | esqueci_senha.php (idEmpresa) | ~~candidatos_aj1_fa, candidatos_aj3_con, new_aj8_fa, new_aj13_conq~~ ✅ corrigido (item 4) |
@@ -85,6 +82,8 @@ O token de assinatura (`bin2hex(random_bytes(16))`, gerado corretamente) identif
 | `vagas/` | (público por design, sem PII exposta) | — | — | — |
 
 > Nota: item 4 corrigiu, de brinde, o SQL Injection nas queries de `rh_documentos`/upload logo ao lado do código de upload em vários arquivos de CIPA/Brigada. O item 8 fechou o restante — todas as queries `DELETE`/`INSERT`/`UPDATE` com `id` cru (reunião, ação, membro, documento) nesses módulos, mais `login_aj2.php`, `rh_reajuste_aj1.php`, `cron_banco_horas.php` e `app/termos/index_aj12.php`/`index_aj14.php`. `dados_aj4` (colaborador) e `gestor/ponto_aj` continuam abertos — são achados de IDOR com SQLi combinado, fora do escopo do item 8.
+>
+> Nota (item 9): `app/termos/assinar.php`, `index_aj11.php`, `index_aj12.php` e `index_aj14.php` continuam sem exigir `idGrupo` de propósito — são o fluxo público de assinatura (quem recebe/devolve o equipamento confirma com o próprio usuário+senha via token, não necessariamente alguém do grupo 4/7/9). A falta de vínculo entre essa senha e o dono real do termo já está registrada acima, em "assinatura de termo não vinculada à identidade do signatário" (ALTO) — item 9 não mexeu nisso.
 
 ---
 
@@ -95,7 +94,7 @@ O token de assinatura (`bin2hex(random_bytes(16))`, gerado corretamente) identif
 3. ✅ ~~Bloquear execução de PHP em todas as pastas de upload via `.htaccess`~~ — feito (item 4), incluindo whitelist de extensão + validação de MIME real em todos os endpoints de upload confirmados.
 4. ✅ ~~Fechar `app/docs/` e PDFs de termos para acesso direto~~ — feito (item 7): gateway `docs_view.php` com checagem de sessão/posse + `.htaccess` de negação total. ⚠️ **`app/temp/` continua com o mesmo gap parcial**: o `.htaccess` só bloqueia execução de PHP, não leitura direta de arquivo — os arquivos que ficam ali temporariamente (staging de OCR) ainda são baixáveis por quem adivinhar o nome. Não estava no escopo do item 7.
 5. ✅ ~~Corrigir o SQL Injection não autenticado em `login_aj2.php`, `rh_reajuste_aj1.php`, `cron_banco_horas.php` e nos módulos CIPA/Brigada/Termos~~ — feito (item 8): todas as queries `DELETE`/`INSERT`/`UPDATE` que concatenavam `id` (ou nome de arquivo) cru nesses módulos agora usam bind de parâmetro; `login_aj2.php` e `rh_reajuste_aj1.php` também passaram a exigir sessão/parâmetro validado, e `cron_banco_horas.php` só aceita chamada com sessão válida ou vinda do próprio servidor (mesmo padrão do item 5/6).
-6. ⬜ **Adicionar checagem de `idGrupo` nos módulos CIPA/Brigada/Termos** — hoje é ausência total, não caso a caso. *(item 9, ainda não iniciado.)*
+6. ✅ ~~Adicionar checagem de `idGrupo` nos módulos CIPA/Brigada/Termos~~ — feito (item 9): CIPA e Brigada agora exigem a flag por usuário (`dcCIPA`/`dcBrigada`) ou Super Usuário (grupo 9) em **todos** os 34+33 arquivos PHP dos dois módulos (nenhum ficou de fora); Termos exige `idGrupo` em (4,7,9), com exceção proposital do fluxo público de assinatura (token+senha, ver nota na tabela de módulos). De passagem: corrigido o bug de `app/termos/login_auth.php` que hardcodava `idGrupo=2` (impedia a própria checagem de funcionar para quem loga pela tela de Termos) e adicionado `exit()` faltante depois de 21 `header('Location...')` que só "funcionavam" por acidente (erro fatal por `$conn` indefinido) — ambos eram pré-requisitos para a correção funcionar de verdade.
 7. ⬜ Revisar sistematicamente os arquivos que usam `extract($_POST)`/`extract($dados)` e trocar por atribuição explícita + bind de parâmetro em toda query. *(o SQLi de CIPA/Brigada/Termos já foi fechado no item 8; o restante — `rh_docs_edt_aj.php`/`rh_docs_eml_aj.php`, `dados_aj4`, `gestor/ponto_aj` — segue pendente, ver seção ALTO.)*
 8. ⬜ Adicionar token CSRF (ou pelo menos `SameSite=Strict/Lax` nos cookies de sessão) como camada adicional.
 9. ⬜ Tratar os demais IDORs (ponto, gestor, ouvidoria, recrutamento) conforme a criticidade do dado exposto em cada caso.
