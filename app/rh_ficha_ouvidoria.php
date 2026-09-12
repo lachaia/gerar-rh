@@ -15,18 +15,15 @@ if (empty($id)) {
     die("FALTOU PARÂMETROS ");
 }
 
-if (!isset($_SESSION['idLogin'])) {
+if (!isset($_SESSION['idLogin']) || !in_array((int) ($_SESSION['idGrupo'] ?? 0), [3, 9], true)) {
     header("location: logout.php");
-} else {
-    include_once "includes/conexao_gerar.php";
-    include_once "includes/debug.php";
-
-    $_idUsuario = $_SESSION['idUsuario'];
-}
-
-if (! $_SESSION['idGrupo'] == 3 && ! $_SESSION['idGrupo'] == 9) {
     die("<h1>ACESSO NEGADO</h1>");
 }
+
+include_once "includes/conexao_gerar.php";
+include_once "includes/debug.php";
+
+$_idUsuario = $_SESSION['idUsuario'];
 
 //
 //- SELECIONA DADOS DA DENÚNCIA

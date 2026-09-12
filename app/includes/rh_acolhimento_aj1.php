@@ -31,7 +31,7 @@ if (!isset($id, $motivo)) {
     die(json_encode($response));
 }
 
-if (isset($_SESSION['idLogin']) && !empty($_SESSION['idLogin'])) {
+if (isset($_SESSION['idLogin']) && !empty($_SESSION['idLogin']) && in_array((int) ($_SESSION['idGrupo'] ?? 0), [3, 9], true)) {
     $status_por = $_SESSION['nmLogin'];
     $motivo = addslashes($motivo); // Protege contra SQL Injection
     //
@@ -39,7 +39,8 @@ if (isset($_SESSION['idLogin']) && !empty($_SESSION['idLogin'])) {
     include_once "f_logs.php";
     //
 } else {
-    header("Location: ../logout.php");
+    http_response_code(403);
+    die(json_encode(["status" => false, "msg" => "Acesso negado."]));
 }
 
 $sql = "UPDATE rh_denuncias 

@@ -7,7 +7,7 @@ session_start();
 
 $idModulo = 15; // Denúncias ao RH 
 
-if (!isset($_SESSION['idLogin'])) {
+if (!isset($_SESSION['idLogin']) || !in_array((int) ($_SESSION['idGrupo'] ?? 0), [3, 9], true)) {
     header('Location: logout.php');
     exit();
 }

@@ -6,8 +6,12 @@
 
 session_start();
 
-define('CHAVE_CRIPTO', 'minha_senha_32_chars_segura_x!'); // Troque por uma chave forte real
-define('VETOR_IV', substr(hash('sha256', 'vetor-unico'), 0, 16));
+include_once "f_ouvidoria_cripto.php";
+
+if (!isset($_SESSION['idLogin']) || !in_array((int) ($_SESSION['idGrupo'] ?? 0), [3, 9], true)) {
+    http_response_code(403);
+    die(json_encode(["status" => false, "msg" => "Acesso negado."]));
+}
 
 $idModulo = 15; // Acolhimento do RH
 
@@ -47,13 +51,3 @@ if ($dados) {
 }
 
 $conn = null;
-
-function criptografar($texto)
-{
-    return openssl_encrypt($texto, 'AES-256-CBC', CHAVE_CRIPTO, 0, VETOR_IV);
-}
-
-function descriptografar($textoCriptografado)
-{
-    return openssl_decrypt($textoCriptografado, 'AES-256-CBC', CHAVE_CRIPTO, 0, VETOR_IV);
-}

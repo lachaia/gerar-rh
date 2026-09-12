@@ -7,12 +7,13 @@ $idModulo = 15; // Acolhimento do RH
 
 session_start();
 
-if( isset($_SESSION['idLogin'])){
+if( isset($_SESSION['idLogin']) && in_array((int) ($_SESSION['idGrupo'] ?? 0), [3, 9], true) ){
     $idLogin = $_SESSION['idLogin'];
     include_once __DIR__ . "/includes/conexao_gerar.php";
     include_once __DIR__ . "/includes/f_logs.php";
 } else{
-    header("location: logout.php");
+    http_response_code(403);
+    die(json_encode(["status" => false, "msg" => "Acesso negado."]));
 }
 
 f_log("CON", "Consulta grade do Cargos", "rh_cargos", $idModulo, 0);

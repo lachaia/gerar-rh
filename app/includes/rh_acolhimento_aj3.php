@@ -43,16 +43,7 @@ die(json_encode($response));
 }
 */
 
-define('CHAVE_CRIPTO', 'minha_senha_32_chars_segura_x!'); // Troque por uma chave forte real
-define('VETOR_IV', substr(hash('sha256', 'vetor-unico'), 0, 16));
-
-function criptografar($texto) {
-    return openssl_encrypt($texto, 'AES-256-CBC', CHAVE_CRIPTO, 0, VETOR_IV);
-}
-
-function descriptografar($textoCriptografado) {
-    return openssl_decrypt($textoCriptografado, 'AES-256-CBC', CHAVE_CRIPTO, 0, VETOR_IV);
-}
+include_once "f_ouvidoria_cripto.php";
 
 $sql = "INSERT INTO rh_denuncias (
     identificacao, nome, email, telefone, tipo_assedio, tipo_outro,

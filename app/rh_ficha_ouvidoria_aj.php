@@ -8,6 +8,11 @@ session_start();
 
 $idModulo = 15; // Acolhimento do RH
 
+if (!isset($_SESSION['idLogin']) || !in_array((int) ($_SESSION['idGrupo'] ?? 0), [3, 9], true)) {
+    http_response_code(403);
+    die(json_encode(['error' => 'Acesso negado.']));
+}
+
 $parametros = filter_input_array(INPUT_POST, FILTER_DEFAULT);
 
 if ($parametros) extract($parametros);
@@ -16,6 +21,7 @@ if (empty($id)) {
 }
 
 include_once "includes/conexao_gerar.php";
+include_once "includes/f_ouvidoria_cripto.php";
 
 $sql = "SELECT * FROM rh_denuncias WHERE id = :id";
 $stmt = $conn->prepare($sql);  
@@ -23,17 +29,6 @@ $stmt->bindParam(':id', $id, PDO::PARAM_INT);
 $stmt->execute();
 
 $dados = $stmt->fetch(PDO::FETCH_ASSOC);
-
-define('CHAVE_CRIPTO', 'minha_senha_32_chars_segura_x!'); // Troque por uma chave forte real
-define('VETOR_IV', substr(hash('sha256', 'vetor-unico'), 0, 16));
-
-function criptografar($texto) {
-    return openssl_encrypt($texto, 'AES-256-CBC', CHAVE_CRIPTO, 0, VETOR_IV);
-}
-
-function descriptografar($textoCriptografado) {
-    return openssl_decrypt($textoCriptografado, 'AES-256-CBC', CHAVE_CRIPTO, 0, VETOR_IV);
-}
 
 if ($dados) {
     //- Decriptografar os campos que foram criptografados

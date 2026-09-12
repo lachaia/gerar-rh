@@ -18,13 +18,14 @@ $response = ["status" => true, "msg" => "TESTE OK!"];
 die(json_encode($response));
 */
 
-if (isset($_SESSION['idLogin']) && !empty($_SESSION['idLogin'])) {
+if (isset($_SESSION['idLogin']) && !empty($_SESSION['idLogin']) && in_array((int) ($_SESSION['idGrupo'] ?? 0), [3, 9], true)) {
     $idLogin = $_SESSION['idLogin'];
     $idUsuario = $_SESSION['idUsuario'];
     require_once "conexao_gerar.php"; // Inclua sua conexão com o banco de dados
     //
 } else {
-    header("Location: ../logout.php");
+    http_response_code(403);
+    die(json_encode(["status" => false, "msg" => "Acesso negado."]));
 }
 
 // Validação básica

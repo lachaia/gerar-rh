@@ -6,6 +6,11 @@
 
 session_start();
 
+if (!isset($_SESSION['idLogin']) || !in_array((int) ($_SESSION['idGrupo'] ?? 0), [3, 9], true)) {
+    http_response_code(403);
+    die(json_encode(['status' => false, 'msg' => 'Acesso negado.']));
+}
+
 include_once "conexao_gerar.php";
 
 $dados = filter_input_array(INPUT_POST, FILTER_DEFAULT);
