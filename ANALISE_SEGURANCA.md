@@ -12,6 +12,15 @@ Os achados estão organizados por severidade. Dentro de cada nível, por categor
 
 ✅ Todos os itens CRÍTICO (2 a 11) foram corrigidos e commitados — ver histórico do git e o "Plano de ação sugerido" abaixo para o resumo de cada um. Os achados restantes (ALTO/MÉDIO/BAIXO abaixo) ainda estão pendentes.
 
+### 12. ~~`app/login_aut.php` — candidato externo (grupo 8) conseguia abrir sessão completa no sistema interno~~ ✅ CORRIGIDO (commit pendente)
+Achado durante o trabalho no item ALTO de `rh_docs_inc/edt_aj.php`, não fazia parte do escopo original desta auditoria — mas é mais grave que qualquer item ALTO, por isso entra como CRÍTICO novo.
+
+A única tentativa de bloquear candidatos era `if( $idPerfil == 8 ) header('Location: https://www.disney.com.br');`, sem `exit()` — o script continuava, verificava a senha e abria a sessão completa (`idLogin`, `idGrupo`, `idColab` etc.) normalmente. E mesmo com o `exit()`, a checagem era inútil: `$idPerfil` é um valor enviado pelo próprio cliente no POST (não vem do banco), então bastava não mandar `idPerfil=8` para nunca cair nesse `if`.
+
+Isso é explorável de verdade, não teórico: existe pelo menos uma conta real de candidato (`flavia.queiroz`, `idUsuario=40`, `idUsuarioGrupo=8` em `rh_usuarios` — documentada em `DIAGNOSTICO_ORFAOS.md`) usando a mesma tabela/fluxo de senha do login geral. Com a senha dessa conta, um candidato externo (alguém que só se candidatou a uma vaga) conseguiria autenticar no sistema interno completo e passar por **qualquer** endpoint que só verifique `isset($_SESSION['idLogin'])` sem checar `idGrupo` — o que descreve boa parte dos endpoints já corrigidos no achado "IDOR generalizado" e no módulo de documentos de RH.
+
+**Corrigido**: adicionado `exit()` depois do `header()` de redirecionamento (defesa em profundidade), e — a correção real — uma checagem logo após a verificação de senha que usa o `idUsuarioGrupo` **vindo do banco** (não o `$idPerfil` do cliente): se for 8, nega o login com a mesma mensagem genérica de "usuário ou senha errada", antes de qualquer `$_SESSION[...]` ser setada. Testado com consulta somente-leitura em produção confirmando que a conta real `flavia.queiroz` (grupo 8) seria bloqueada por essa checagem.
+
 ---
 
 ## ALTO
@@ -38,7 +47,7 @@ Nenhum token CSRF foi encontrado em lugar nenhum do código (grep por `csrf`/`to
 
 **O que NÃO foi feito** (de propósito, escopo maior): `SameSite=Lax` reduz a superfície de CSRF (bloqueia o cookie em requisições cross-site que não sejam navegação de topo, incluindo a maioria dos POSTs forjados de outro site) mas **não é o mesmo que ter token CSRF de verdade** — ainda existe uma janela para CSRF via navegação de topo (GET) em navegadores que não implementam esse comportamento, e nenhuma verificação de origem/token existe nos formulários. Implementar token CSRF de verdade exigiria tocar centenas de arquivos (todo `_aj*.php` que recebe POST) e está fora do escopo desta correção pontual.
 
-### ~~`app/includes/rh_docs_eml_aj.php` — path traversal + exfiltração por e-mail + SQLi~~ ✅ CORRIGIDO (commit pendente)
+### ~~`app/includes/rh_docs_eml_aj.php` — path traversal + exfiltração por e-mail + SQLi~~ ✅ CORRIGIDO (commit `10af784`)
 ~~`$idPessoa`/`$arquivo` vêm crus do POST (via `extract()`), sem checagem de posse, montam `"../docs/pessoa_$idPessoa/$arquivo"` sem sanitizar `../`, e o arquivo é anexado e enviado por e-mail para **qualquer destinatário também controlado pelo atacante**. Um usuário autenticado (mesmo de baixo privilégio) pode pedir o envio por e-mail de `../../includes/conexao_gerar.php` (credenciais do banco) para o próprio e-mail dele. O INSERT de log do envio também concatena `$titulo`/`$mensagem` sem bind.~~ Corrigido: adicionado gate de login; `idPessoa`/`arquivo` agora são sempre lidos do banco a partir do `idDoc` (nunca do POST do cliente), com `basename()` no nome de arquivo; `para`/`cc`/`cco` validados com `FILTER_VALIDATE_EMAIL`; as duas queries de INSERT (rh_emails, rh_logs) migradas para bind de parâmetro.
 
 ### `app/includes/rh_docs_inc_aj.php` / `rh_docs_edt_aj.php` — `idPessoa` da sessão sobrescrito por POST
@@ -103,6 +112,8 @@ O token de assinatura (`bin2hex(random_bytes(16))`, gerado corretamente) identif
 8. ✅ ~~Fechar `app/api/api_supervisor.php` (PII sem autenticação, CORS aberto)~~ — feito (item 11): removido o CORS aberto (desnecessário — só é chamado servidor→servidor via `file_get_contents()`, nunca por JS de navegador) e restringida a chamada ao próprio servidor, mesmo padrão usado nos itens 5/6/8 para APIs internas equivalentes.
 
 **Com isso, todos os itens CRÍTICO (2 a 11) estão corrigidos.** Segue o que falta, todo em severidade ALTO/MÉDIO/BAIXO:
+
+8b. ✅ ~~`app/login_aut.php` — candidato externo (grupo 8) abria sessão completa no sistema interno~~ — feito (item 12, novo achado CRÍTICO, encontrado durante o trabalho no item 11 abaixo): faltava `exit()` após o redirecionamento de candidatos, e o bloqueio dependia de um valor (`$idPerfil`) enviado pelo próprio cliente, portanto forjável. Agora a checagem usa `idUsuarioGrupo` vindo do banco, antes de qualquer `$_SESSION[...]` ser setada.
 
 9. ✅ ~~Tratar os IDORs generalizados (ponto, gestor, colaborador, documentos de RH, saúde/rescisão, recrutamento, talentos)~~ — feito, nos 7 grupos do achado "IDOR generalizado" (ver seção ALTO): commits `1004917` (ponto), `de3e8d5` (gestor), `4dc44d7` (colaborador), `060c317`+`50e1a9c` (documentos de RH), `e58b388` (saúde/rescisão), `5f45a04` (recrutamento), `21d6df4` (talentos, parcial — rate limiting/CAPTCHA continuam em aberto, não existem em nenhum ponto do sistema hoje).
 10. ✅ ~~Corrigir o XSS armazenado em vagas (vaga_perfil.php, aprova.php)~~ — feito (commit `9c86829`): `conteudo_rico()` centralizada em `app/includes/f_html_seguro.php`, agora sanitiza de verdade com HTMLPurifier em vez de imprimir HTML cru assim que o campo tivesse qualquer tag.

@@ -13,7 +13,18 @@ if (isset($parametros)) extract($parametros);
 //
 //- Candidatos tentando entrar no sistema de RH
 //
-if( $idPerfil == 8 ) header('Location: https://www.disney.com.br');
+// $idPerfil vem cru do POST do cliente — não é uma barreira de segurança,
+// só decide qual "aba" do formulário de login foi usada. O bloqueio real
+// de candidatos (grupo 8) é feito mais abaixo, depois de buscar o grupo
+// verdadeiro no banco (idUsuarioGrupo), pois esse valor não pode ser
+// forjado pelo cliente. Faltava esse bloqueio: sem ele, um candidato com
+// conta em rh_usuarios conseguia abrir sessão completa no sistema interno
+// (bastava não mandar idPerfil=8, ou até mandando, já que faltava exit()
+// aqui e o restante do script rodava do mesmo jeito).
+if ($idPerfil == 8) {
+    header('Location: https://www.disney.com.br');
+    exit();
+}
 
 if (isset($_SESSION['SISTEMA'])) {
     if ($_SESSION['SISTEMA'] != "RH") {
@@ -64,6 +75,15 @@ if (count($rows) > 0) {
     //- verifica se a senha confere
     //
     if (! password_verify($senha, $rows[0]['senha'])) {
+        $conn = null;
+        die('{"status":"0", "mensagem":"Usuário ou Senha errada!"}');
+    }
+    //
+    // Grupo 8 = Candidatos (Externos). Esse valor vem do banco (idUsuarioGrupo),
+    // não do cliente, então não pode ser forjado como o $idPerfil acima.
+    // Candidato tem seu próprio portal e nunca deve abrir sessão no sistema
+    // interno de RH.
+    if ((int) $rows[0]["idUsuarioGrupo"] === 8) {
         $conn = null;
         die('{"status":"0", "mensagem":"Usuário ou Senha errada!"}');
     }
