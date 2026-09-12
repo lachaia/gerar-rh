@@ -42,14 +42,15 @@ if (!isset($idPessoa, $idColab, $data, $idExameTipo, $dtVencimento, $dsExame, $n
     die(json_encode($response));
 }
 
-if (isset($_SESSION['idLogin']) && !empty($_SESSION['idLogin'])) {
+if (isset($_SESSION['idLogin']) && !empty($_SESSION['idLogin']) && in_array((int) ($_SESSION['idGrupo'] ?? 0), [1, 9], true)) {
     $idLogin = $_SESSION['idLogin'];
     $idEmpresa = $_SESSION['idEmpresa'];
     require_once "conexao_gerar.php"; // Inclua sua conexão com o banco de dados
     include_once "f_logs.php";
     //
 } else {
-    header("Location: ../logout.php");
+    http_response_code(403);
+    die(json_encode(["status" => false, "msg" => "Acesso negado."]));
 }
 
 if (isset($_FILES['arquivo']) && $_FILES['arquivo']['error'] === UPLOAD_ERR_OK) {
