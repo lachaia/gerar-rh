@@ -15,7 +15,7 @@
 
 session_start();
 
-if (!isset($_SESSION['idLogin'])) {
+if (!isset($_SESSION['idLogin']) || !in_array((int) ($_SESSION['idGrupo'] ?? 0), [6, 9], true)) {
     header("location: ../logout.php");
     exit();
 }
