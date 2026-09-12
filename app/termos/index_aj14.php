@@ -6,6 +6,14 @@
 
 session_start();
 
+// Esta tela só é usada a partir de index.php (já exige idGrupo em 4/7/9),
+// mas o endpoint em si não checava sessão nenhuma — dava pra chamar direto
+// sem nunca ter passado pelo portão da página.
+if (!isset($_SESSION['idLogin']) || !in_array((int) ($_SESSION['idGrupo'] ?? 0), [4, 7, 9], true)) {
+    http_response_code(403);
+    die(json_encode(["status" => false, "msg" => "Acesso negado."]));
+}
+
 require '../vendor/autoload.php';
 
 use Dompdf\Dompdf;
@@ -15,6 +23,16 @@ include "../includes/conexao_gerar.php";
 
 $parametros = filter_input_array(INPUT_POST, FILTER_DEFAULT);
 if (isset($parametros)) extract($parametros);
+
+// "usuario" nunca vem do cliente para fins de autenticação: isso virava um
+// oráculo de força bruta de senha contra QUALQUER login de rh_usuarios,
+// sem nenhum vínculo com quem de fato está processando a baixa. Agora é
+// sempre o login de quem já está autenticado na sessão — a senha aqui é
+// só uma reconfirmação de identidade, não uma amarração ao dono do termo
+// (a baixa de equipamento é processada pela equipe de RH/TI para
+// qualquer colaborador, por desenho).
+$usuario = $_SESSION['nmLogin'];
+
 if (empty($idTermo) || empty($usuario) || empty($senha)) {
     $retorno = [
         "status" => false,
@@ -68,9 +86,9 @@ $idModulo = 19; // Equipamentos
     $stmt->execute(); 
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     //
-    if( ! password_verify( $senha, $row['senha'] ) ){
-        $conn = null; 
-        die('{"status":"0", "msg":"Usuário ou Senha errada!"}');            
+    if( !$row || !isset($row['senha']) || ! password_verify( $senha, $row['senha'] ) ){
+        $conn = null;
+        die('{"status":"0", "msg":"Usuário ou Senha errada!"}');
     }
 
 //

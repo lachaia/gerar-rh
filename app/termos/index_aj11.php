@@ -50,16 +50,13 @@ if ($usuario === '' || $senha === '' || $token === '') {
 }
 
 try {
-    $sqlUser = "SELECT senha FROM rh_usuarios WHERE login = :login LIMIT 1";
-    $stmtUser = $conn->prepare($sqlUser);
-    $stmtUser->bindValue(':login', $usuario, PDO::PARAM_STR);
-    $stmtUser->execute();
-    $rowUser = $stmtUser->fetch(PDO::FETCH_ASSOC);
-
-    if (!$rowUser || !isset($rowUser['senha']) || !password_verify($senha, $rowUser['senha'])) {
-        resposta_json(false, '<div class="alert alert-danger">Usuário ou senha inválidos.</div>');
-    }
-
+    // Busca o termo PELO TOKEN antes de checar credenciais — o token já
+    // amarra a operação a uma pessoa específica (idPessoa). Antes, a senha
+    // era verificada contra QUALQUER login de rh_usuarios, sem nenhum
+    // vínculo com o dono do termo: um usuário autenticado como qualquer
+    // outra pessoa conseguia assinar o termo de terceiros. Também
+    // funcionava como oráculo de força bruta de senha, já que a checagem
+    // de senha nem dependia do token ser válido.
     $sqlTermo = "SELECT id, idPessoa, termo_html, hashPDF FROM rh_equip_termos WHERE token = :token LIMIT 1";
     $stmtTermo = $conn->prepare($sqlTermo);
     $stmtTermo->bindValue(':token', $token, PDO::PARAM_STR);
@@ -80,6 +77,23 @@ try {
 
     if ($idTermoPost !== '' && ctype_digit($idTermoPost) && (int)$idTermoPost !== $idTermo) {
         resposta_json(false, '<div class="alert alert-danger">Termo inconsistente para este token.</div>');
+    }
+
+    // A senha só é validada para um login que seja OU o dono do termo
+    // (idPessoa vindo do token, nunca do cliente) OU alguém de RH/Super
+    // Usuário (grupo 1/9) assinando em nome de quem não tem login próprio
+    // — existe pelo menos um termo real na produção nesse caso (dono sem
+    // conta em rh_usuarios). Fora isso, nenhum outro login serve — antes
+    // qualquer conta válida do sistema conseguia assinar termo de terceiro.
+    $sqlUser = "SELECT senha FROM rh_usuarios WHERE login = :login AND (idPessoa = :idPessoa OR idUsuarioGrupo IN (1, 9)) LIMIT 1";
+    $stmtUser = $conn->prepare($sqlUser);
+    $stmtUser->bindValue(':login', $usuario, PDO::PARAM_STR);
+    $stmtUser->bindValue(':idPessoa', $idPessoa, PDO::PARAM_INT);
+    $stmtUser->execute();
+    $rowUser = $stmtUser->fetch(PDO::FETCH_ASSOC);
+
+    if (!$rowUser || !isset($rowUser['senha']) || !password_verify($senha, $rowUser['senha'])) {
+        resposta_json(false, '<div class="alert alert-danger">Usuário ou senha inválidos.</div>');
     }
 
     $options = new Options();

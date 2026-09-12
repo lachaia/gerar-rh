@@ -13,6 +13,14 @@ die( json_encode($retorno) );
 
 session_start();
 
+// Nenhuma página atual do sistema chama este arquivo (foi substituído por
+// index_aj14.php), mas ele continua acessível diretamente por URL — por
+// segurança, exige a mesma sessão/grupo que a tela de Termos já exige.
+if (!isset($_SESSION['idLogin']) || !in_array((int) ($_SESSION['idGrupo'] ?? 0), [4, 7, 9], true)) {
+    http_response_code(403);
+    die(json_encode(["status" => false, "msg" => "Acesso negado."]));
+}
+
 require '../vendor/autoload.php';
 
 use Dompdf\Dompdf;
@@ -29,6 +37,10 @@ $idModulo = 19; // Equipamentos
 
 $parametros = filter_input_array(INPUT_POST, FILTER_DEFAULT);
 if (isset($parametros)) extract($parametros);
+
+// "usuario" nunca vem do cliente para fins de autenticação — ver
+// index_aj14.php para a explicação completa (mesmo padrão aplicado aqui).
+$usuario = $_SESSION['nmLogin'];
 
 if (empty($idTermo) || empty($usuario) || empty($senha || empty($vistoria))) {
     $retorno = [
