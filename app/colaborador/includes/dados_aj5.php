@@ -29,6 +29,7 @@ if (isset($_SESSION['idLogin'])) {
     include_once "../../includes/f_logs.php";
 } else {
     header("location: ../../logout.php");
+    exit();
 }
  /*
     include_once "../includes/debug.php";
@@ -36,7 +37,7 @@ if (isset($_SESSION['idLogin'])) {
     $resposta = [ 'msg' => '<div class="alert alert-primary"><strong>OK!</strong> TESTADO!</div>' ];
     die( json_encode($resposta, JSON_PRETTY_PRINT ));
     /*
-    index_aj4.php | 2025-05-16 09:19:07 
+    index_aj4.php | 2025-05-16 09:19:07
     {
         "idColab": "1",
         "idEndereco": "2",
@@ -54,9 +55,22 @@ if (isset($_SESSION['idLogin'])) {
 //$cpf = preg_replace("/\D/", "", $cpf); // Remove tudo que não for número
 $cep = preg_replace("/\D/", "", $cep); // Remove tudo que não for número
 
+// idPessoa é sempre o do usuário logado — nunca o que o cliente mandar.
+$idPessoa = (int) ($_SESSION['idPessoa'] ?? 0);
 if( empty( $idPessoa )){
     $resposta = [ 'msg' => '<div class="alert alert-danger"><strong>NOT OK!</strong> eiiiiiiiiiiiita!</div>' ];
     die( json_encode($resposta, JSON_PRETTY_PRINT ));
+}
+
+// Só pode alterar um endereço que já seja da própria pessoa.
+$sqlCheck = "SELECT idPessoa FROM rh_enderecos WHERE idEndereco = :idEndereco";
+$stmtCheck = $conn->prepare($sqlCheck);
+$stmtCheck->bindParam(':idEndereco', $idEndereco, PDO::PARAM_INT);
+$stmtCheck->execute();
+$enderecoAtual = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+if (!$enderecoAtual || (int) $enderecoAtual['idPessoa'] !== $idPessoa) {
+    http_response_code(403);
+    die(json_encode(["status" => false, "msg" => "Acesso negado."]));
 }
 
 //-- Insere Endereço

@@ -92,7 +92,17 @@ if (isset($_SESSION['idLogin'])) {
     include_once "../includes/f_linha_do_tempo.php";
 } else {
     header("location: logout.php");
+    exit();
 }
+
+// idPessoa é sempre o do usuário logado — nunca o que o cliente mandar,
+// senão qualquer colaborador consegue sobrescrever os dados de outra pessoa.
+$idPessoa = (int) ($_SESSION['idPessoa'] ?? 0);
+if (empty($idPessoa)) {
+    http_response_code(403);
+    die(json_encode(["status" => false, "msg" => "Sessão inválida."]));
+}
+
 //-- tratamento dos dados
 //
 $cpf = preg_replace("/\D/", "", $cpf); // Remove tudo que não for número
@@ -101,8 +111,9 @@ $cpf = preg_replace("/\D/", "", $cpf); // Remove tudo que não for número
 //- ATUALIZAR A TABELA
 //
 
-$sql = "SELECT idPessoa FROM rh_pessoas WHERE idPessoa = $idPessoa";
+$sql = "SELECT idPessoa FROM rh_pessoas WHERE idPessoa = :idPessoa";
 $stmt = $conn->prepare($sql);
+$stmt->bindParam(':idPessoa', $idPessoa, PDO::PARAM_INT);
 $stmt->execute();
 $dados_old = $stmt->fetch(PDO::FETCH_ASSOC);
 $dados_old = implode(", ", $dados_old);
@@ -118,9 +129,10 @@ $sql = "UPDATE rh_pessoas
             cnh = :cnh, cnh_categoria = :cnh_categoria, cnh_vencimento = :cnh_vencimento,
             email_corporativo = :email_corporativo, celular_corporativo = :celular_corporativo,
             nome_mae = :nome_mae, pis = :pis, ctps = :ctps, idGrauEscola = :idGrau
-            WHERE idPessoa = $idPessoa"; // Condição para o registro a ser atualizado 
+            WHERE idPessoa = :idPessoa"; // Condição para o registro a ser atualizado
 // Vincular os parâmetros com os valores recebidos
 $stmt = $conn->prepare($sql);
+$stmt->bindParam(':idPessoa', $idPessoa, PDO::PARAM_INT);
 $stmt->bindParam(':nome', $nome);
 $stmt->bindParam(':nomeSocial', $nomeSocial);
 $stmt->bindParam(':cpf', $cpf);

@@ -53,6 +53,9 @@ if (isset($_SESSION['idLogin'])) {
 //$cpf = preg_replace("/\D/", "", $cpf); // Remove tudo que não for número
 $cep = preg_replace("/\D/", "", $cep); // Remove tudo que não for número
 
+// idPessoa é sempre o do usuário logado — nunca o que o cliente mandar,
+// senão qualquer colaborador consegue criar endereço em nome de outra pessoa.
+$idPessoa = (int) ($_SESSION['idPessoa'] ?? 0);
 if( empty( $idPessoa )){
     $resposta = [ 'msg' => '<div class="alert alert-danger"><strong>NOT OK!</strong> eiiiiiiiiiiiita!</div>' ];
     die( json_encode($resposta, JSON_PRETTY_PRINT ));

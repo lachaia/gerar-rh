@@ -100,13 +100,14 @@ if (isset($_SESSION['idLogin'])) {
     include "../../includes/f_notificacoes.php";
 } else {
     header("Location: ../../logout.php");
+    exit();
 }
 
 //
 //- Busca informações da Pessoa e das férias
 //
 $sql = "SELECT P.nome, F.*
-                FROM rh_ferias F 
+                FROM rh_ferias F
                 INNER JOIN rh_colaboradores C on C.idColab = F.idColab
                 INNER JOIN rh_pessoas P on P.idPessoa = C.idPessoa
                 WHERE F.id = :id";
@@ -114,6 +115,13 @@ $stmt = $conn->prepare($sql);
 $stmt->bindParam(':id', $id);
 $stmt->execute();
 $dados = $stmt->fetch(PDO::FETCH_ASSOC);
+
+// Só pode agendar/alterar as próprias férias.
+if (!$dados || (int) $dados['idColab'] !== (int) ($_SESSION['idColab'] ?? 0)) {
+    http_response_code(403);
+    die(json_encode(["status" => false, "msg" => "Acesso negado."]));
+}
+
 //
 $nome = $dados['nome'];
 //

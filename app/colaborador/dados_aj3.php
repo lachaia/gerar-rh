@@ -42,6 +42,15 @@ if (isset($_SESSION['idLogin'])) {
     include_once "../includes/f_linha_do_tempo.php";
 } else {
     header("location: logout.php");
+    exit();
+}
+
+// idPessoa é sempre o do usuário logado — nunca o que o cliente mandar,
+// senão o comprovante é gravado na pasta/documentos de outra pessoa.
+$idPessoa = (int) ($_SESSION['idPessoa'] ?? 0);
+if (empty($idPessoa)) {
+    http_response_code(403);
+    die(json_encode(["status" => false, "msg" => "Sessão inválida."]));
 }
 
 if (!empty($_FILES['ce_arquivo']['name'])) {
