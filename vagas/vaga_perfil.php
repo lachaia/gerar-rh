@@ -99,14 +99,7 @@ if (($_GET['from'] ?? '') === 'painel' && $candidato_logado) {
 //- descricao/experiencia/diferenciais/beneficios podem vir do editor rico (Summernote, já
 //- em HTML) ou como texto simples com quebras de linha normais (ex.: preenchido por IA).
 //- Só escapa e quebra linha quando não há tag nenhuma - HTML de verdade sai intacto.
-function conteudo_rico(?string $valor): string
-{
-    $valor = trim((string) $valor);
-    if ($valor === '') {
-        return '';
-    }
-    return strip_tags($valor) === $valor ? nl2br(htmlspecialchars($valor)) : $valor;
-}
+require_once __DIR__ . '/../app/includes/f_html_seguro.php';
 ?>
 <!DOCTYPE html>
 <html lang="pt-br" data-bs-theme="dark">

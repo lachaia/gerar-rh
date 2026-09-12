@@ -347,14 +347,7 @@ include 'inc/footer.php';
 //- (Summernote, já em HTML) ou como texto simples com quebras de linha normais (ex.:
 //- preenchido por IA). Só escapa e quebra linha quando não há tag nenhuma.
 //
-function conteudo_rico(?string $valor): string
-{
-    $valor = trim((string) $valor);
-    if ($valor === '') {
-        return '';
-    }
-    return strip_tags($valor) === $valor ? nl2br(htmlspecialchars($valor)) : $valor;
-}
+require_once __DIR__ . '/../app/includes/f_html_seguro.php';
 
 //
 //- Exibe um campo de dados dentro de um mini card Bootstrap (label em destaque + conteúdo).

@@ -7,6 +7,7 @@
 session_start();
 
 include "../app/includes/conexao_gerar.php";
+require_once "../app/includes/f_html_seguro.php";
 
 //
 //- STATUS_ID de referência (rs_vagas_status): 2 = APROVADA | 3 = REPROVADA
@@ -402,42 +403,42 @@ function vaga_timeline(PDO $conn, int $vaga_id, string $agora, string $oque, str
                         <?php if (!empty($dados_vaga['descricao'])): ?>
                         <div class="col-12 vaga-campo">
                             <label>Descrição</label>
-                            <div class="valor"><?= $dados_vaga['descricao'] ?></div>
+                            <div class="valor"><?= conteudo_rico($dados_vaga['descricao']) ?></div>
                         </div>
                         <?php endif; ?>
 
                         <?php if (!empty($dados_vaga['experiencia'])): ?>
                         <div class="col-12 vaga-campo">
                             <label>Experiência Desejada</label>
-                            <div class="valor"><?= $dados_vaga['experiencia'] ?></div>
+                            <div class="valor"><?= conteudo_rico($dados_vaga['experiencia']) ?></div>
                         </div>
                         <?php endif; ?>
 
                         <?php if (!empty($dados_vaga['atividades'])): ?>
                         <div class="col-12 vaga-campo">
                             <label>Atividades da Vaga</label>
-                            <div class="valor"><?= $dados_vaga['atividades'] ?></div>
+                            <div class="valor"><?= conteudo_rico($dados_vaga['atividades']) ?></div>
                         </div>
                         <?php endif; ?>
 
                         <?php if (!empty($dados_vaga['c_comportamentais'])): ?>
                         <div class="col-md-6 vaga-campo">
                             <label>Competências Comportamentais</label>
-                            <div class="valor"><?= $dados_vaga['c_comportamentais'] ?></div>
+                            <div class="valor"><?= conteudo_rico($dados_vaga['c_comportamentais']) ?></div>
                         </div>
                         <?php endif; ?>
 
                         <?php if (!empty($dados_vaga['c_tecnicas'])): ?>
                         <div class="col-md-6 vaga-campo">
                             <label>Competências Técnicas</label>
-                            <div class="valor"><?= $dados_vaga['c_tecnicas'] ?></div>
+                            <div class="valor"><?= conteudo_rico($dados_vaga['c_tecnicas']) ?></div>
                         </div>
                         <?php endif; ?>
 
                         <?php if (!empty($dados_vaga['equipamentos'])): ?>
                         <div class="col-12 vaga-campo">
                             <label>Equipamentos Solicitados</label>
-                            <div class="valor"><?= $dados_vaga['equipamentos'] ?></div>
+                            <div class="valor"><?= conteudo_rico($dados_vaga['equipamentos']) ?></div>
                         </div>
                         <?php endif; ?>
 
