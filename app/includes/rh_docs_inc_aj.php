@@ -15,17 +15,33 @@ if (!isset($_SESSION['idLogin'])) {
 } else {
     include_once "conexao_gerar.php";
     include_once "f_upload_seguro.php";
-    //
-    $idUsuario = $_SESSION['idUsuario'];
-    $idLogin   = $_SESSION['idLogin'  ];
-    $idPessoa  = $_SESSION['idPessoa' ];    
-    $idEmpresa = $_SESSION['idEmpresa'];
-    $nmLogin   = $_SESSION['nmLogin'  ];
-    //  
 }
 
 $dados = filter_input_array(INPUT_POST, FILTER_DEFAULT);
 if( $dados ) extract($dados);
+
+// extract() acima roda por cima de QUALQUER chave do POST, inclusive
+// nomes que não fazem parte do formulário normal (ex.: idEmpresa,
+// idUsuario) — sem isso, um POST forjado poderia trocar identidade/tenant.
+// idPessoa fica de fora de propósito: este console de documentos permite
+// que quem estiver logado escolha para qual pessoa o upload vai (mesmo
+// padrão já usado em rh_docs_edt_aj.php, que tem "troca de proprietário"
+// explícita) — decisão confirmada com o usuário.
+$idUsuario = $_SESSION['idUsuario'];
+$idLogin   = $_SESSION['idLogin'  ];
+$idEmpresa = $_SESSION['idEmpresa'];
+$nmLogin   = $_SESSION['nmLogin'  ];
+
+// idPessoa/idTipo vêm do cliente (de propósito), mas ainda assim precisam
+// ser inteiros: são usados para montar caminho de arquivo em disco
+// ("../docs/pessoa_$idPessoa"), e uma string como "../../etc" ali seria
+// path traversal.
+$idPessoa = (int) ($idPessoa ?? 0);
+$idTipo   = (int) ($idTipo ?? 0);
+if ($idPessoa <= 0) {
+    $conn = null;
+    die(json_encode(["status" => false, "msg" => "Pessoa inválida."]));
+}
 
 $mensagemSucesso = '<div class="alert alert-success text-center">Arquivo Inserido com <b>sucesso</b>.</div > ';
 $mensagemErro    = '<div class="alert alert-danger text-center"><strong>Erro!</strong> Não foi possível processar a requisição!</div > ';

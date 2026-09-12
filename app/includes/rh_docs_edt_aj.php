@@ -6,21 +6,42 @@
 
 session_start();
 
+if (!isset($_SESSION['idLogin'])) {
+    http_response_code(403);
+    die(json_encode(["status" => false, "msg" => "Acesso negado."]));
+}
+
 include_once "../includes/conexao_gerar.php";
 include_once "../includes/f_logs.php";
+include_once "../includes/f_upload_seguro.php";
 
 $idModulo  = 32;  //- GED
 $agora     = date("Y-m-d H:i:s");
-
-$idUsuario = $_SESSION['idUsuario'];
-$idLogin   = $_SESSION['idLogin'  ];
-$idGrupo   = $_SESSION['idGrupo'  ];
-$idPessoa  = $_SESSION['idPessoa' ];
 
 $nome_original = "";
 
 $dados = filter_input_array(INPUT_POST, FILTER_DEFAULT);
 if($dados) extract($dados);
+
+// idUsuario/idLogin/idGrupo reafirmados DEPOIS do extract(): esse
+// extract() roda por cima de qualquer chave do POST, então sem isso um
+// POST forjado poderia sobrescrever identidade (ex.: falsificar quem fez
+// a alteração no log). idPessoa fica de fora de propósito — este arquivo
+// já implementa "troca de proprietário" do documento via POST, decisão
+// confirmada com o usuário.
+$idUsuario = $_SESSION['idUsuario'];
+$idLogin   = $_SESSION['idLogin'  ];
+$idGrupo   = $_SESSION['idGrupo'  ];
+
+// idDoc/idPessoa precisam ser inteiros: idDoc vai para SQL, idPessoa
+// monta caminho de arquivo em disco ("../docs/pessoa_$idPessoa") — uma
+// string ali seria path traversal.
+$idDoc    = (int) ($idDoc ?? 0);
+$idPessoa = (int) ($idPessoa ?? 0);
+if ($idDoc <= 0 || $idPessoa <= 0) {
+    $conn = null;
+    die(json_encode(["status" => false, "msg" => "Documento ou pessoa inválidos."]));
+}
 
 $mensagemSucesso = '<div class="alert alert-success text-center">Informações registradas com <b>sucesso</b>.</div > ';
 $mensagemErro    = '<div class="alert alert-danger text-center"><strong>Erro!</strong> Não foi possível processar a requisição!</div > ';
@@ -45,10 +66,15 @@ rh_docs_edt_aj.php | 2025-12-11 10:25:46
 //
 //- Guarda dados Antigos
 //
-    $sql = "SELECT * FROM rh_documentos WHERE idDoc = $idDoc";
+    $sql = "SELECT * FROM rh_documentos WHERE idDoc = :idDoc";
     $res = $conn->prepare($sql);
+    $res->bindParam(':idDoc', $idDoc, PDO::PARAM_INT);
     $res->execute();
     $_dados = $res->fetch(PDO::FETCH_ASSOC);
+    if (!$_dados) {
+        $conn = null;
+        die(json_encode(["status" => false, "msg" => "Documento não encontrado."]));
+    }
     $dadosAntigos = "Dados Antigos: " . implode(', ', $_dados);
     $dadosAntigos = addslashes( $dadosAntigos );
 
@@ -89,6 +115,14 @@ try {
 //
 if ( ! empty($_FILES['doc_arquivo']['tmp_name'])) {
     //
+    // rh_docs_inc_aj.php (upload de documento novo) já validava extensão +
+    // MIME real; esta troca de arquivo físico não validava nada.
+    $validacao = upload_seguro_validar($_FILES['doc_arquivo'], ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx']);
+    if ($validacao !== true) {
+        $conn = null;
+        die(json_encode(["status" => false, "msg" => $validacao]));
+    }
+
     $diretorio = "../docs/pessoa_$idPessoa";
     //
     $nome_original = $_FILES['doc_arquivo']['name'];
@@ -117,15 +151,21 @@ if ( ! empty($_FILES['doc_arquivo']['tmp_name'])) {
         $texto_ocr = "$nome_original | " . addslashes($texto_ocr);
         //
         //- ATUALIZA tabela com o novo nome
-        $sql = "UPDATE rh_documentos SET nome_original='$nome_original', arquivo='$arquivo', extensao='$extensao', ocr='$texto_ocr'
-                WHERE idDoc = $idDoc";
+        $sql = "UPDATE rh_documentos SET nome_original=:nome_original, arquivo=:arquivo, extensao=:extensao, ocr=:ocr
+                WHERE idDoc = :idDoc";
         $stmt_files = $conn->prepare($sql);
-        $stmt_files->execute();
+        $stmt_files->execute([
+            ':nome_original' => $nome_original,
+            ':arquivo'       => $arquivo,
+            ':extensao'      => $extensao,
+            ':ocr'           => $texto_ocr,
+            ':idDoc'         => $idDoc,
+        ]);
         //
         //-- exclui arquivo anterior
-        $arquivo = "../docs/pessoa_$idPessoa/" . $_dados['arquivo'];
-        if (file_exists($arquivo)) {
-            unlink( $arquivo );
+        $arquivoAntigo = "../docs/pessoa_$idPessoa/" . basename($_dados['arquivo'] ?? '');
+        if (file_exists($arquivoAntigo)) {
+            unlink( $arquivoAntigo );
         }
         //
     } else {
@@ -153,7 +193,7 @@ if ( ! empty($_FILES['doc_arquivo']['tmp_name'])) {
         $idPessoaAntigo = $_dados['idPessoa'];   // dono anterior
         $idPessoaNovo   = $idPessoa;             // novo dono
 
-        $arquivoAtualNome = $_dados['arquivo'];  // nome do arquivo atual
+        $arquivoAtualNome = basename($_dados['arquivo'] ?? '');  // nome do arquivo atual
 
         $origem = "../docs/pessoa_$idPessoaAntigo/$arquivoAtualNome";
         $destinoDir = "../docs/pessoa_$idPessoaNovo";
@@ -195,10 +235,17 @@ if ( ! empty($_FILES['doc_arquivo']['tmp_name'])) {
 //
     if( empty($nome_original) ) $nome_original = $_dados['nome_original'];
 
-    $sql = "INSERT INTO rh_logs (idLogin, dtOper, oper, historico, tabela, idModulo, idOperacao) 
-                    VALUES ($idLogin, '$agora', 'ALT', 'Alterado dados de registro de DOC: $nome_original | $dadosAntigos', 'ti_docs', $idModulo, $idDoc)";
+    $historico = "Alterado dados de registro de DOC: $nome_original | $dadosAntigos";
+    $sql = "INSERT INTO rh_logs (idLogin, dtOper, oper, historico, tabela, idModulo, idOperacao)
+                    VALUES (:idLogin, :agora, 'ALT', :historico, 'ti_docs', :idModulo, :idDoc)";
     $stmt = $conn->prepare($sql);
-    $stmt->execute();
+    $stmt->execute([
+        ':idLogin'  => $idLogin,
+        ':agora'    => $agora,
+        ':historico'=> $historico,
+        ':idModulo' => $idModulo,
+        ':idDoc'    => $idDoc,
+    ]);
 
 $conn = null;
 die(json_encode(["status" => $status, "msg" => $mensagem]));
