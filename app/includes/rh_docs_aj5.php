@@ -6,6 +6,11 @@
 
 session_start();
 
+if (!isset($_SESSION['idLogin'])) {
+    http_response_code(403);
+    die(json_encode(['erro' => 'Acesso negado.']));
+}
+
 $parametros = filter_input_array(INPUT_POST, FILTER_DEFAULT);
 extract( $parametros );
 
@@ -19,8 +24,9 @@ include_once "../includes/conexao_gerar.php";
                 FROM rh_documentos D
                 INNER JOIN rh_docs_tipo as T on T.idTipoDoc = D.idTipoDoc
                 INNER JOIN rh_pessoas P on P.idPessoa = D.idPessoa
-                WHERE D.idDoc = $idDoc";
+                WHERE D.idDoc = :idDoc";
     $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':idDoc', $idDoc, PDO::PARAM_INT);
     $stmt->execute();
     $dados = $stmt->fetch(PDO::FETCH_ASSOC);
 

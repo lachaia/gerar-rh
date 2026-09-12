@@ -6,6 +6,11 @@
 
 session_start();
 
+if (!isset($_SESSION['idLogin'])) {
+    http_response_code(403);
+    die(json_encode(["status" => false, "msg" => "Acesso negado."]));
+}
+
 $caminho = __DIR__ . '/chaves/gerarocr-ba77063bf0b6.json';
 putenv("GOOGLE_APPLICATION_CREDENTIALS=$caminho");
 
@@ -13,12 +18,11 @@ include_once "../includes/conexao_gerar.php";
 include_once "../includes/debug.php";
 include_once "../includes/f_logs.php";
 
-$idModulo = 14; // RH-GED  
+$idModulo = 14; // RH-GED
 $agora = date("Y-m-d H:i:s");
 
 $idUsuario = $_SESSION['idUsuario'];
 $idLogin   = $_SESSION['idLogin'];
-$idPessoa  = $_SESSION['idPessoa'];
 
 $dados = filter_input_array(INPUT_POST, FILTER_DEFAULT);
 extract($dados);
@@ -26,11 +30,16 @@ extract($dados);
 //
 //- Recupera dados antigos
 //
-$sql = "SELECT * FROM rh_documentos WHERE idDoc = $id";
+$sql = "SELECT * FROM rh_documentos WHERE idDoc = :id";
 $stmt = $conn->prepare($sql);
+$stmt->bindParam(':id', $id, PDO::PARAM_INT);
 $stmt->execute();
 $dados = $stmt->fetch(PDO::FETCH_ASSOC);
 $dadosAntigos = "Dados Antigos: " . implode(', ', $dados);
+// idPessoa do arquivo físico é sempre o dono real do documento (na tabela),
+// nunca o da sessão de quem está excluindo — já era um bug latente que
+// deixava o arquivo físico órfão em disco.
+$idPessoa = $dados['idPessoa'] ?? null;
 
 try {
     $sql = "DELETE FROM rh_documentos WHERE idDoc = :id";
@@ -46,7 +55,7 @@ try {
 //
 //- Apaga o arquivo físico
 //
-    $arquivo = "../docs/pessoa_{$idPessoa}/{$dados['arquivo']}";
+    $arquivo = "../docs/pessoa_{$idPessoa}/" . basename($dados['arquivo'] ?? '');
 
     if (is_file($arquivo)) {
         unlink($arquivo);
