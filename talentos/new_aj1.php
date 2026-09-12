@@ -8,7 +8,13 @@ session_start();
 
 include "../app/includes/conexao_gerar.php";
 
-$cpf = $_POST['cpf'];
+// Só dígitos e comparação exata — "LIKE" com o valor cru do cliente permitia
+// usar caracteres coringa (%, _) para varrer/enumerar CPFs válidos dígito a
+// dígito, além de simplesmente consultar um CPF já conhecido.
+$cpf = preg_replace('/\D/', '', $_POST['cpf'] ?? '');
+if (strlen($cpf) !== 11) {
+    die(json_encode(["status" => false, "msg" => "CPF inválido", "idColab" => 0, "idUsuarioGrupo" => 0]));
+}
 
 /*- PLANO
  1. Pessoa = Não | ==> Senha Enviada Por e-mail 
@@ -25,7 +31,7 @@ $sql  = "SELECT P.cpf, U.idColab, U.idUsuarioGrupo, P.idPessoa, C.idCV, P.nome,
             FROM rh_pessoas P
             LEFT OUTER JOIN rh_usuarios U on U.idPessoa = P.idPessoa
             LEFT OUTER JOIN rh_cv C on C.idPessoa = P.idPessoa
-            WHERE P.cpf like :cpf LIMIT 1";
+            WHERE REPLACE(REPLACE(REPLACE(P.cpf, '.', ''), '-', ''), ' ', '') = :cpf LIMIT 1";
 $stmt = $conn->prepare($sql);
 $stmt->bindParam( ':cpf' , $cpf, PDO::PARAM_STR );
 $stmt->execute();  
