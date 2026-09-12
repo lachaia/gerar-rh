@@ -145,7 +145,7 @@ if (isset($_FILES['documento_edit']) && $_FILES['documento_edit']['error'] === U
         //
         //- EXCLUI ARQUIVO ANTERIOR
         //
-            $destino = "../docs/brigada/$arquivoAnterior";
+            $destino = "../docs/brigada/" . basename($arquivoAnterior);
             if (file_exists($destino) && !empty($arquivoAnterior)) {
                 unlink($destino); // Exclui o arquivo do servidor
             }

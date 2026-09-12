@@ -85,9 +85,9 @@ if ($dados) {
     die(json_encode($retorno));
 }
 
-$sql = "DELETE FROM rh_cipeiros WHERE id = $id";
+$sql = "DELETE FROM rh_cipeiros WHERE id = :id";
 $stmt = $conn->prepare($sql);
-$stmt->execute();
+$stmt->execute(['id' => $id]);
 
 if (! empty($arquivoFoto)) {
     $caminhoFoto = "../docs/cipa/" . $arquivoFoto;

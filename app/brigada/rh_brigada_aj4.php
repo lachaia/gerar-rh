@@ -60,9 +60,9 @@ if ($dados) {
     $stringDados = "Nenhum dado encontrado.";
 }
 
-$sql = "DELETE FROM rh_brigadistas WHERE id = $id";
+$sql = "DELETE FROM rh_brigadistas WHERE id = :id";
 $stmt = $conn->prepare($sql);
-$stmt->execute();
+$stmt->execute(['id' => $id]);
 
 if( ! empty($arquivoFoto) ){
     $caminhoFoto = "../docs/brigada/" . $arquivoFoto;

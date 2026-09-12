@@ -14,10 +14,26 @@ ini_set('max_execution_time', 600); // 10 minutos
 set_time_limit(600);
 
 $idLogin = $_SESSION['idLogin'] ?? null;
+
+// Chamado tanto por um usuário logado no navegador quanto internamente,
+// servidor->servidor, sem sessão (ponto_aj2.php faz file_get_contents()
+// nesta mesma URL após aprovar um ajuste de ponto). Por isso a checagem
+// aceita sessão válida OU chamada vinda do próprio servidor — nunca uma
+// chamada externa anônima.
+$chamadaInterna = (($_SERVER['REMOTE_ADDR'] ?? '') === ($_SERVER['SERVER_ADDR'] ?? '!'))
+    || (($_SERVER['REMOTE_ADDR'] ?? '') === '127.0.0.1');
+
+if (!$idLogin && !$chamadaInterna) {
+    http_response_code(403);
+    die('<h1>Acesso negado.</h1>');
+}
+
 $horario_ini = "08:20:00"; //- Padrão Gerar
 $horario_fim = "18:05:00"; //- Padrão Gerar
 
-if( isset($_GET['colaborador_id']) ) $colaborador_id = $_GET['colaborador_id']; else $colaborador_id = null;
+$colaborador_id = (isset($_GET['colaborador_id']) && ctype_digit((string) $_GET['colaborador_id']))
+    ? (int) $_GET['colaborador_id']
+    : null;
 
 /*
     Deve calcular (em segundos para maior precisão):

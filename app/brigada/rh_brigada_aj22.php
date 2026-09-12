@@ -99,9 +99,9 @@ try {
             //
             //- EXCLUI OS MEMBROS DA AÇÃO
             //
-                $sql = "DELETE FROM rh_brigada_acoes_membros WHERE idAcao = $idAcaoAlt";
+                $sql = "DELETE FROM rh_brigada_acoes_membros WHERE idAcao = :idAcaoAlt";
                 $stmt = $conn->prepare($sql);
-                $stmt->execute();
+                $stmt->execute(['idAcaoAlt' => $idAcaoAlt]);
             //        
             $presente = 1; // Presente por padrão
             foreach ($ids as $idBrigadista) {
@@ -128,9 +128,9 @@ try {
             //
             //- EXCLUI LINHA DE TEMPO das PESSOAS
             //
-                $sql = "DELETE FROM rh_pessoas_ldt WHERE idAcaoTipo = 33 and idOrigem = $idAcaoAlt";
+                $sql = "DELETE FROM rh_pessoas_ldt WHERE idAcaoTipo = 33 and idOrigem = :idAcaoAlt";
                 $stmt = $conn->prepare($sql);
-                $stmt->execute();
+                $stmt->execute(['idAcaoAlt' => $idAcaoAlt]);
             //        
             foreach ($ids as $idBrigadista) {
                 // Verifica se o idBrigadista é válido
@@ -177,7 +177,7 @@ try {
                 //
                     if( !empty( $arquivo_anterior ))
                     {
-                        $caminhoArquivo = "../docs/brigada/" . $arquivo_anterior;
+                        $caminhoArquivo = "../docs/brigada/" . basename($arquivo_anterior);
                         if (file_exists($caminhoArquivo)) {
                             unlink($caminhoArquivo); // Exclui o arquivo do servidor
                         }

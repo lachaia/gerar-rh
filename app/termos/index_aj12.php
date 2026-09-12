@@ -40,6 +40,8 @@ if (empty($idTermo) || empty($usuario) || empty($senha || empty($vistoria))) {
     die(json_encode($retorno));
 }
 
+$idTermo = (int) $idTermo; // usado também para montar caminho de arquivo — precisa ser sempre numérico
+
 //
 //- CONFERE USUÁRIO + SENHA
 //
@@ -58,8 +60,9 @@ if (empty($idTermo) || empty($usuario) || empty($senha || empty($vistoria))) {
 //
 //- GERA O PDF ASSINADO
 //
-$sql = "SELECT * FROM rh_equip_termos WHERE id = $idTermo";
+$sql = "SELECT * FROM rh_equip_termos WHERE id = :idTermo";
 $stmt = $conn->prepare($sql);
+$stmt->bindParam(':idTermo', $idTermo);
 $stmt->execute();
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
 //

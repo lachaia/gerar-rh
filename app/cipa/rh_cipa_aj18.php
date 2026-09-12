@@ -120,9 +120,9 @@ try {
             //
             //- EXCLUI OS MEMBROS DA REUNIÃO
             //
-                $sql = "DELETE FROM rh_cipa_reuniao_membros WHERE idReuniao = $idReuniaoAlt";
+                $sql = "DELETE FROM rh_cipa_reuniao_membros WHERE idReuniao = :idReuniaoAlt";
                 $stmt = $conn->prepare($sql);
-                $stmt->execute();
+                $stmt->execute(['idReuniaoAlt' => $idReuniaoAlt]);
             //        
             $presente = 1; // Presente por padrão
             foreach ($ids as $idCipeiro) {
@@ -149,9 +149,9 @@ try {
             //
             //- EXCLUI LINHA DE TEMPO das PESSOAS
             //
-                $sql = "DELETE FROM rh_pessoas_ldt WHERE idAcaoTipo = 33 and idOrigem = $idReuniaoAlt";
+                $sql = "DELETE FROM rh_pessoas_ldt WHERE idAcaoTipo = 33 and idOrigem = :idReuniaoAlt";
                 $stmt = $conn->prepare($sql);
-                $stmt->execute();
+                $stmt->execute(['idReuniaoAlt' => $idReuniaoAlt]);
             //        
             foreach ($ids as $idCipeiro) {
                 // Verifica se o idCipeiro é válido
@@ -228,13 +228,13 @@ try {
                     //
                         if( !empty( $arquivo_anterior ))
                         {   //- ../docs/cipa/
-                            $caminhoArquivo = "../docs/cipa/$arquivo_anterior";
+                            $caminhoArquivo = "../docs/cipa/" . basename($arquivo_anterior);
                             if (file_exists($caminhoArquivo)) {
                                 unlink($caminhoArquivo); // Exclui o arquivo do servidor
                                 //
-                                $sql = "DELETE FROM rh_documentos WHERE arquivo like '$arquivo_anterior'";
+                                $sql = "DELETE FROM rh_documentos WHERE arquivo like :arquivo_anterior";
                                 $stmt = $conn->prepare($sql);
-                                $stmt->execute();
+                                $stmt->execute(['arquivo_anterior' => $arquivo_anterior]);
                             }
                         }
                     //
@@ -253,14 +253,27 @@ try {
                     $texto_ocr = ocr($caminhoFinal);
                     $texto_ocr = "$nomeOriginal | " . addslashes($texto_ocr);
                     //
-                    $sql = "INSERT INTO rh_documentos (idEmpresa, idPessoa, idTipoDoc, data, descricao, data_validade, arquivo, 
+                    $sql = "INSERT INTO rh_documentos (idEmpresa, idPessoa, idTipoDoc, data, descricao, data_validade, arquivo,
                                 nome_original, ocr, tags, extensao, tamanho, status, idLoginAprova, origem)
                                 VALUES
-                                ($idEmpresa, $idPessoa, $idTipoDoc, '$dataOriginal', '$assunto', '$dataMais10Anos', '$nomeSeguro', '$nomeOriginal', 
-                                '$texto_ocr', '$tags', '$ext', $tamanho, 1, $idLogin, 'CIP')";
+                                (:idEmpresa, :idPessoa, :idTipoDoc, :data, :descricao, :data_validade, :arquivo,
+                                :nome_original, :ocr, :tags, :extensao, :tamanho, 1, :idLogin, 'CIP')";
                     //debug( $sql );
                     $stmt = $conn->prepare($sql);
-                    $stmt->execute(); 
+                    $stmt->bindParam(':idEmpresa', $idEmpresa);
+                    $stmt->bindParam(':idPessoa', $idPessoa);
+                    $stmt->bindParam(':idTipoDoc', $idTipoDoc);
+                    $stmt->bindParam(':data', $dataOriginal);
+                    $stmt->bindParam(':descricao', $assunto);
+                    $stmt->bindParam(':data_validade', $dataMais10Anos);
+                    $stmt->bindParam(':arquivo', $nomeSeguro);
+                    $stmt->bindParam(':nome_original', $nomeOriginal);
+                    $stmt->bindParam(':ocr', $texto_ocr);
+                    $stmt->bindParam(':tags', $tags);
+                    $stmt->bindParam(':extensao', $ext);
+                    $stmt->bindParam(':tamanho', $tamanho);
+                    $stmt->bindParam(':idLogin', $idLogin);
+                    $stmt->execute();
                     //
 
                 } else {

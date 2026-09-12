@@ -10,12 +10,6 @@ Os achados estão organizados por severidade. Dentro de cada nível, por categor
 
 ## CRÍTICO — ação imediata
 
-### 8. SQL Injection não autenticada em pontos críticos
-- **`app/includes/login_aj2.php`** (linha ~20-28) — a etapa que identifica o usuário **antes** da senha ser validada monta `WHERE login like '%$login%' OR P.cpf like '%$login_cpf%' OR P.email_corporativo like '%$login%'` sem bind. Isso é injeção de SQL **no próprio fluxo de login**, sem exigir credencial alguma.
-- **`app/includes/rh_reajuste_aj1.php`** — sem `session_start()`, `WHERE C.idOrgao = $idOrgao` direto do `$_GET`.
-- **`app/ponto/api/cron_banco_horas.php`** — sessão lida mas nunca verificada; `colaborador_id` do GET entra sem bind em **três `DELETE`** (`rh_ponto_banco_saldo`, `rh_ponto_banco_horas`, `rh_notificacoes`). Payload tipo `?colaborador_id=0 OR 1=1` apaga a tabela inteira.
-- **Módulos CIPA/Brigada/Termos**: dezenas de `DELETE`/`INSERT` com `id` (e em alguns casos texto livre tipo "assunto" ou nome de arquivo enviado) concatenados sem bind — ver detalhamento na seção "Achados por módulo" abaixo.
-
 ### 9. Ausência sistêmica de controle de acesso por grupo em módulos inteiros
 Confirmado por grep exaustivo: **0 dos 31 endpoints de `app/cipa/`, 0 dos 30 de `app/brigada/`, e nenhum de `app/termos/`** checam `$_SESSION['idGrupo']`. Esses módulos são pensados para perfis restritos (CIPA, Brigada, TI/RH — grupos 4/7/9 no caso de Termos), mas como a checagem de grupo simplesmente não existe no backend, **qualquer conta autenticada no sistema principal — inclusive grupo 8 "Candidatos externos" — pode acessar essas telas e seus endpoints diretamente**, incluindo o painel de "Usuários" de cada módulo. A restrição do login específico de `app/termos/login_auth.php` (grupos 4/7/9) é irrelevante, porque quem já está logado pelo login principal do RH cai na mesma sessão compartilhada e pode simplesmente navegar direto para `app/termos/index.php`.
 
@@ -80,17 +74,17 @@ O token de assinatura (`bin2hex(random_bytes(16))`, gerado corretamente) identif
 
 | Módulo | Sem checagem de sessão | Sem checagem de grupo (`idGrupo`) | SQLi confirmada | Upload sem whitelist |
 |---|---|---|---|---|
-| `app/includes/` (núcleo) | ~13 arquivos (docs, pessoa, ouvidoria, cv, reajuste) | rh_saude*, rh_rescisao* (só checam sessão) | login_aj2, rh_docs_edt/eml_aj | ~~rh_perfil_aj, rh_usuarios_inc_aj, rh_pessoa_aj4/7/13, rh_colab_aj3/4, rh_docs_inc_aj~~ ✅ corrigido (item 4) |
-| `app/cipa/` | 10 de 31 arquivos | **0 de 31** | aj4,12,16,23,29 (+ SQLi residual em aj15/18/20/22/27/30 fora do trecho de upload/documento) | ~~aj3,6,15,20,27,30~~ ✅ corrigido (item 4) |
-| `app/brigada/` | 10 de 30 arquivos | **0 de 30** | aj4,12,16,23,29 (+ SQLi residual em aj15/18/20/22/27/30 fora do trecho de upload/documento) | ~~aj3,6,15,18,20,22,27,30~~ ✅ corrigido (item 4) |
-| `app/termos/` | aj9,aj12,aj13,aj14,aj18 | **nenhum** (login próprio existe mas é bypassável pela sessão central) | aj12, aj14 | ~~aj10,aj13,aj16~~ ✅ corrigido (item 4) |
-| `app/ponto/` | registrar_ponto, ultimas_batidas(_web), edita_cartao_aj2/3, solicitacoes_aj, localizacao_aj/aj1 | — | cron_banco_horas.php | — |
+| `app/includes/` (núcleo) | ~13 arquivos (docs, pessoa, ouvidoria, cv, reajuste) | rh_saude*, rh_rescisao* (só checam sessão) | ~~login_aj2~~ ✅ corrigido (item 8); rh_docs_edt/eml_aj (aberto, ver ALTO) | ~~rh_perfil_aj, rh_usuarios_inc_aj, rh_pessoa_aj4/7/13, rh_colab_aj3/4, rh_docs_inc_aj~~ ✅ corrigido (item 4) |
+| `app/cipa/` | 10 de 31 arquivos | **0 de 31** | ~~aj4,12,16,18,22,23,29~~ ✅ corrigido (item 8) | ~~aj3,6,15,20,27,30~~ ✅ corrigido (item 4) |
+| `app/brigada/` | 10 de 30 arquivos | **0 de 30** | ~~aj4,12,16,18,22,23,29~~ ✅ corrigido (item 8) | ~~aj3,6,15,18,20,22,27,30~~ ✅ corrigido (item 4) |
+| `app/termos/` | aj9,aj12,aj13,aj14,aj18 | **nenhum** (login próprio existe mas é bypassável pela sessão central) | ~~aj12, aj14~~ ✅ corrigido (item 8) | ~~aj10,aj13,aj16~~ ✅ corrigido (item 4) |
+| `app/ponto/` | registrar_ponto, ultimas_batidas(_web), edita_cartao_aj2/3, solicitacoes_aj, localizacao_aj/aj1 | — | ~~cron_banco_horas.php~~ ✅ corrigido (item 8) | — |
 | `app/colaborador/` `app/gestor/` | dados_aj1, index_aj1, ferias_aj1 | ficha_colab (sem scope de equipe) | dados_aj4, gestor/ponto_aj | — |
 | `talentos/` | — (padrão de sessão é bem aplicado) | — | esqueci_senha.php (idEmpresa) | ~~candidatos_aj1_fa, candidatos_aj3_con, new_aj8_fa, new_aj13_conq~~ ✅ corrigido (item 4) |
 | `recrutamento/` | — | vaga_fluxo_mover_aj, candidato_fluxo_mover_aj, candidato_cv_aj (sem scope de subsede) | — | — |
 | `vagas/` | (público por design, sem PII exposta) | — | — | — |
 
-> Nota: item 4 corrigiu, de brinde, o SQL Injection nas queries de `rh_documentos`/upload logo ao lado do código de upload nos arquivos acima (bind de parâmetro). As demais queries dos **mesmos arquivos** (ex.: `DELETE ... WHERE id = $id` de reunião/ação/membro) **não foram tocadas** e continuam vulneráveis — por isso aj15/18/20/22/27/30 ainda aparecem na coluna de SQLi.
+> Nota: item 4 corrigiu, de brinde, o SQL Injection nas queries de `rh_documentos`/upload logo ao lado do código de upload em vários arquivos de CIPA/Brigada. O item 8 fechou o restante — todas as queries `DELETE`/`INSERT`/`UPDATE` com `id` cru (reunião, ação, membro, documento) nesses módulos, mais `login_aj2.php`, `rh_reajuste_aj1.php`, `cron_banco_horas.php` e `app/termos/index_aj12.php`/`index_aj14.php`. `dados_aj4` (colaborador) e `gestor/ponto_aj` continuam abertos — são achados de IDOR com SQLi combinado, fora do escopo do item 8.
 
 ---
 
@@ -100,9 +94,10 @@ O token de assinatura (`bin2hex(random_bytes(16))`, gerado corretamente) identif
 2. ✅ ~~Corrigir os 3 endpoints de takeover de conta (`rh_usuario_alt_aj.php`, `rh_usuario_exc_aj.php`, `reset_senha_aj.php`)~~ — feito (itens 2 e 3).
 3. ✅ ~~Bloquear execução de PHP em todas as pastas de upload via `.htaccess`~~ — feito (item 4), incluindo whitelist de extensão + validação de MIME real em todos os endpoints de upload confirmados.
 4. ✅ ~~Fechar `app/docs/` e PDFs de termos para acesso direto~~ — feito (item 7): gateway `docs_view.php` com checagem de sessão/posse + `.htaccess` de negação total. ⚠️ **`app/temp/` continua com o mesmo gap parcial**: o `.htaccess` só bloqueia execução de PHP, não leitura direta de arquivo — os arquivos que ficam ali temporariamente (staging de OCR) ainda são baixáveis por quem adivinhar o nome. Não estava no escopo do item 7.
-5. ⬜ **Adicionar checagem de `idGrupo` nos módulos CIPA/Brigada/Termos** — hoje é ausência total, não caso a caso. *(item 9, ainda não iniciado.)*
-6. ⬜ Revisar sistematicamente os arquivos que usam `extract($_POST)`/`extract($dados)` e trocar por atribuição explícita + bind de parâmetro em toda query. *(item 8 cobre uma parte; o restante segue pendente — ver nota na tabela de módulos sobre SQLi residual em CIPA/Brigada fora do trecho de upload/documento.)*
-7. ⬜ Adicionar token CSRF (ou pelo menos `SameSite=Strict/Lax` nos cookies de sessão) como camada adicional.
-8. ⬜ Tratar os demais IDORs (ponto, gestor, ouvidoria, recrutamento) conforme a criticidade do dado exposto em cada caso.
+5. ✅ ~~Corrigir o SQL Injection não autenticado em `login_aj2.php`, `rh_reajuste_aj1.php`, `cron_banco_horas.php` e nos módulos CIPA/Brigada/Termos~~ — feito (item 8): todas as queries `DELETE`/`INSERT`/`UPDATE` que concatenavam `id` (ou nome de arquivo) cru nesses módulos agora usam bind de parâmetro; `login_aj2.php` e `rh_reajuste_aj1.php` também passaram a exigir sessão/parâmetro validado, e `cron_banco_horas.php` só aceita chamada com sessão válida ou vinda do próprio servidor (mesmo padrão do item 5/6).
+6. ⬜ **Adicionar checagem de `idGrupo` nos módulos CIPA/Brigada/Termos** — hoje é ausência total, não caso a caso. *(item 9, ainda não iniciado.)*
+7. ⬜ Revisar sistematicamente os arquivos que usam `extract($_POST)`/`extract($dados)` e trocar por atribuição explícita + bind de parâmetro em toda query. *(o SQLi de CIPA/Brigada/Termos já foi fechado no item 8; o restante — `rh_docs_edt_aj.php`/`rh_docs_eml_aj.php`, `dados_aj4`, `gestor/ponto_aj` — segue pendente, ver seção ALTO.)*
+8. ⬜ Adicionar token CSRF (ou pelo menos `SameSite=Strict/Lax` nos cookies de sessão) como camada adicional.
+9. ⬜ Tratar os demais IDORs (ponto, gestor, ouvidoria, recrutamento) conforme a criticidade do dado exposto em cada caso.
 
 Nenhuma alteração foi feita no código ou no banco durante a análise original — os itens marcados ✅ acima já foram corrigidos e commitados desde então; o restante é o que falta priorizar.

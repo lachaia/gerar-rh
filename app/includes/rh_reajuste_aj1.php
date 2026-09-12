@@ -4,13 +4,19 @@
 // (C)haia, 06/10/2025
 //
 
+session_start();
+
+if (!isset($_SESSION['idLogin'])) {
+    http_response_code(403);
+    die(json_encode(["status" => false, "msg" => "Acesso negado."]));
+}
+
 include_once "conexao_gerar.php";
 global $conn;
 
 if (isset($_GET['tipo'])) $tipo = $_GET['tipo'];
 else $tipo = 'nenhum';
-if (isset($_GET['idOrgao'])) $idOrgao = $_GET['idOrgao'];
-else $idOrgao = 0;
+$idOrgao = isset($_GET['idOrgao']) && ctype_digit((string) $_GET['idOrgao']) ? (int) $_GET['idOrgao'] : 0;
 
 //
 //- CARREGA TODOS OS COLABORADORES ATIVOS
@@ -29,10 +35,11 @@ if ($tipo == 'todos') {
 //- CARREGA TODOS OS COLABORADORES do ORGÁO ESPECÍFICO
 } elseif ($tipo == 'orgao' && ! empty($idOrgao)) {
     $sql = "SELECT C.idColab, P.nome
-        FROM RH.rh_colaboradores C 
+        FROM RH.rh_colaboradores C
         INNER JOIN rh_pessoas P on P.idPessoa = C.idPessoa
-        WHERE C.idOrgao = $idOrgao";
+        WHERE C.idOrgao = :idOrgao";
     $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':idOrgao', $idOrgao, PDO::PARAM_INT);
     $stmt->execute();
     $registros = $stmt->fetchAll(PDO::FETCH_ASSOC);
     echo json_encode($registros);        

@@ -25,6 +25,8 @@ if (empty($idTermo) || empty($usuario) || empty($senha)) {
     die(json_encode($retorno));
 }
 
+$idTermo = (int) $idTermo; // usado também para montar caminho de arquivo — precisa ser sempre numérico
+
 /*
 include_once "../includes/debug.php";
 debug(json_encode($parametros, JSON_PRETTY_PRINT));
@@ -74,8 +76,9 @@ $idModulo = 19; // Equipamentos
 //
 //- RECUPERA DADOS DO TERMO
 //
-    $sql = "SELECT * FROM rh_equip_termos WHERE id = '$idTermo'";
+    $sql = "SELECT * FROM rh_equip_termos WHERE id = :idTermo";
     $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':idTermo', $idTermo);
     $stmt->execute();
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     //

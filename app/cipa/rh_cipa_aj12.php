@@ -48,9 +48,9 @@ if ($dados) {
     $stringDados = "Nenhum dado encontrado.";
 }
 
-$sql = "DELETE FROM rh_cipa_atendimentos WHERE id = $id";
+$sql = "DELETE FROM rh_cipa_atendimentos WHERE id = :id";
 $stmt = $conn->prepare($sql);
-$stmt->execute();
+$stmt->execute(['id' => $id]);
 
 f_log("EXC", "EXCLUSÃO de Atendimento de CIPA, ID: $id | Dados Excluídos( $stringDados )", "rh_cipa_atendimentos", $idModulo, $id);
 

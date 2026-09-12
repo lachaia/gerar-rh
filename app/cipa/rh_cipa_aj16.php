@@ -67,34 +67,34 @@ if ($dados) {
 //
 //- EXCLUI LINHA DE TEMPO das PESSOAS
 //
-    $sql = "DELETE FROM rh_pessoas_ldt WHERE idAcaoTipo = 33 and idOrigem = $id";
+    $sql = "DELETE FROM rh_pessoas_ldt WHERE idAcaoTipo = 33 and idOrigem = :id";
     $stmt = $conn->prepare($sql);
-    $stmt->execute();    
+    $stmt->execute(['id' => $id]);
 //
 //- EXCLUI OS MEMBROS DA REUNIÃO
 //
-    $sql = "DELETE FROM rh_cipa_reuniao_membros WHERE idReuniao = $id";
+    $sql = "DELETE FROM rh_cipa_reuniao_membros WHERE idReuniao = :id";
     $stmt = $conn->prepare($sql);
-    $stmt->execute();
+    $stmt->execute(['id' => $id]);
 //
 //- EXCLUI A REUNIÃO
 //
-    $sql = "DELETE FROM rh_cipa_reunioes WHERE id = $id";
+    $sql = "DELETE FROM rh_cipa_reunioes WHERE id = :id";
     $stmt = $conn->prepare($sql);
-    $stmt->execute();
+    $stmt->execute(['id' => $id]);
 //
 //- EXCLUI O ANEXO DE ATA - se existir
 //
     if( !empty( $dados['ata_arquivo'] ))
     {   //- ../docs/cipa/
         $arquivo = $dados['ata_arquivo'];
-        $caminhoArquivo = "../docs/cipa/$arquivo";
+        $caminhoArquivo = "../docs/cipa/" . basename($arquivo);
         if (file_exists($caminhoArquivo)) {
             unlink($caminhoArquivo); // Exclui o arquivo do servidor
             //
-            $sql = "DELETE FROM rh_documentos WHERE arquivo like '$arquivo'";
+            $sql = "DELETE FROM rh_documentos WHERE arquivo like :arquivo";
             $stmt = $conn->prepare($sql);
-            $stmt->execute();
+            $stmt->execute(['arquivo' => $arquivo]);
         }
     }
 

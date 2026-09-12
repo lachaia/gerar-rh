@@ -59,9 +59,9 @@ if ($dados) {
 //
 //- EXCLUI LINHA DE TEMPO das PESSOAS
 //
-    $sql = "DELETE FROM rh_documentos WHERE idDoc = $id";
+    $sql = "DELETE FROM rh_documentos WHERE idDoc = :id";
     $stmt = $conn->prepare($sql);
-    $stmt->execute();    
+    $stmt->execute(['id' => $id]);
 
 //
 //- EXCLUI O ANEXO DE ATA - se existir
@@ -69,7 +69,7 @@ if ($dados) {
     if( !empty( $dados['arquivo'] ))
     {
         $arquivo = $dados['arquivo'];
-        $caminhoArquivo = "../docs/cipa/$arquivo";
+        $caminhoArquivo = "../docs/cipa/" . basename($arquivo);
         if (file_exists($caminhoArquivo)) {
             unlink($caminhoArquivo); // Exclui o arquivo do servidor
         }

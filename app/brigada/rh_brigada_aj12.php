@@ -63,16 +63,16 @@ die(json_encode(["status" => false, "msg" => "<div class='alert alert-primary'><
 //
 //- EXCLUI REGISTRO DE ATENDIMENTO
 //
-    $sql = "DELETE FROM rh_atendimentos WHERE id = $id";
+    $sql = "DELETE FROM rh_atendimentos WHERE id = :id";
     $stmt = $conn->prepare($sql);
-    $stmt->execute();
+    $stmt->execute(['id' => $id]);
 
 //
 //- EXCLUI BRIGADISTAS QUE FIZERAM O ATENDIMENTO
 //
-    $sql = "DELETE FROM rh_brigada_atend_membros WHERE idAtendimento = $id";
+    $sql = "DELETE FROM rh_brigada_atend_membros WHERE idAtendimento = :id";
     $stmt = $conn->prepare($sql);
-    $stmt->execute();
+    $stmt->execute(['id' => $id]);
 
 f_log("EXC", "EXCLUSÃO de Atendimento de Brigada, ID: $id | Dados Excluídos( $stringDados )", "rh_atendimentos", $idModulo, $id);
 

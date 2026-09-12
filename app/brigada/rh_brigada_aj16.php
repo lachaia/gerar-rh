@@ -52,7 +52,7 @@ $sql = "SELECT R.*, S.identificador as dsSubSede,
         WHERE M.idReuniao = R.id AND M.presente = 1
     ) AS nomesParticipantes
     FROM rh_brigada_reunioes R
-    INNER JOIN rh_subsedes S ON S.subsede_id = R.idSubSede;
+    INNER JOIN rh_subsedes S ON S.subsede_id = R.idSubSede
     WHERE id = :id";
 $stmt = $conn->prepare($sql);
 $stmt->execute(['id' => $id]); // Substitua $idCargo pelo valor desejado
@@ -67,27 +67,27 @@ if ($dados) {
 //
 //- EXCLUI LINHA DE TEMPO das PESSOAS
 //
-    $sql = "DELETE FROM rh_pessoas_ldt WHERE idAcaoTipo = 33 and idOrigem = $id";
+    $sql = "DELETE FROM rh_pessoas_ldt WHERE idAcaoTipo = 33 and idOrigem = :id";
     $stmt = $conn->prepare($sql);
-    $stmt->execute();    
+    $stmt->execute(['id' => $id]);
 //
 //- EXCLUI OS MEMBROS DA REUNIÃO
 //
-    $sql = "DELETE FROM rh_brigada_reuniao_membros WHERE idReuniao = $id";
+    $sql = "DELETE FROM rh_brigada_reuniao_membros WHERE idReuniao = :id";
     $stmt = $conn->prepare($sql);
-    $stmt->execute();
+    $stmt->execute(['id' => $id]);
 //
 //- EXCLUI A REUNIÃO
 //
-    $sql = "DELETE FROM rh_brigada_reunioes WHERE id = $id";
+    $sql = "DELETE FROM rh_brigada_reunioes WHERE id = :id";
     $stmt = $conn->prepare($sql);
-    $stmt->execute();
+    $stmt->execute(['id' => $id]);
 //
 //- EXCLUI O ANEXO DE ATA - se existir
 //
     if( !empty( $dados['ata_arquivo'] ))
     {
-        $caminhoArquivo = "../docs/brigada/" . $dados['ata_arquivo'];
+        $caminhoArquivo = "../docs/brigada/" . basename($dados['ata_arquivo']);
         if (file_exists($caminhoArquivo)) {
             unlink($caminhoArquivo); // Exclui o arquivo do servidor
         }

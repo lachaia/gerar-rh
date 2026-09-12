@@ -5,7 +5,11 @@
 
 session_start();
 
-$login = $_POST['login'];
+$login = $_POST['login'] ?? '';
+
+if ($login === '') {
+    die(json_encode(["status" => false, "msg" => '<div class="alert alert-danger" role="alert">ERRO: Usuário Inválido!</div>']));
+}
 
 include "conexao_gerar.php";
 //include "debug.php";
@@ -23,10 +27,15 @@ $sql = "SELECT U.idColab, U.idUsuarioGrupo, P.email_corporativo, U.login, P.cpf,
         INNER JOIN rh_pessoas P ON P.idPessoa = U.idPessoa
         LEFT OUTER JOIN rh_colaboradores C on C.idColab = U.idColab
         LEFT OUTER JOIN rh_organograma O on O.idOrgao = C.idOrgao
-        WHERE login like '%$login%' 
-            OR P.cpf like '%$login_cpf%' 
-            OR P.email_corporativo like '%$login%' LIMIT 1";
+        WHERE login like :login
+            OR P.cpf like :login_cpf
+            OR P.email_corporativo like :login_email LIMIT 1";
 $stmt = $conn->prepare($sql);
+$likeLogin = '%' . $login . '%';
+$likeCpf = '%' . $login_cpf . '%';
+$stmt->bindParam(':login', $likeLogin);
+$stmt->bindParam(':login_cpf', $likeCpf);
+$stmt->bindParam(':login_email', $likeLogin);
 $stmt->execute();
 
 //debug( $sql );
