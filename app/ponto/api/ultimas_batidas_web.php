@@ -7,14 +7,15 @@
 session_start();
 header('Content-Type: text/html; charset=utf-8');
 
-if (!isset($_POST['idColab'])) {
-    echo "Parâmetro ausente.";
-    exit;
+if (empty($_SESSION['idLogin']) || empty($_SESSION['idColab'])) {
+    http_response_code(403);
+    die("Sessão inválida.");
 }
 
 include "../../includes/conexao_gerar.php";
 
-$idColab = intval($_POST['idColab']);
+// Sempre as batidas do próprio usuário logado — nunca de quem o cliente pedir.
+$idColab = (int) $_SESSION['idColab'];
 
 if(empty($idColab)) die("<p class='text-red-600 text-sm text-center'>Colaborador não encontrado.</p>");
 

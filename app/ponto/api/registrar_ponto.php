@@ -50,9 +50,20 @@ if (!isset($colaborador_id) || !isset($lat) || !isset($lon) || !isset($agora)) {
     exit;
 }
 
+if (empty($_SESSION['idLogin']) || empty($_SESSION['idColab'])) {
+    http_response_code(403);
+    echo json_encode([
+        'sucesso' => false,
+        'mensagem' => 'Sessão inválida. Faça login novamente.'
+    ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+    exit;
+}
+
 include dirname(__DIR__) . '/../includes/conexao_gerar.php';
 
-$idColab = intval($colaborador_id);
+// colaborador_id sempre é o do usuário logado — nunca o que o cliente mandar,
+// senão bate-se ponto (com hash de integridade) em nome de outra pessoa.
+$idColab = (int) $_SESSION['idColab'];
 $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
 
 // Converte formato ISO 8601 -> MySQL

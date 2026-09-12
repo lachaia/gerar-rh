@@ -6,11 +6,16 @@
 
 session_start();
 
+if (empty($_SESSION['idLogin']) || empty($_SESSION['idColab'])) {
+    http_response_code(403);
+    die(json_encode(["status" => false, "msg" => "Sessão inválida."]));
+}
+
 $nmLogin = $_SESSION['nmLogin'];
 
 // Ajusta fuso horário
 date_default_timezone_set('America/Sao_Paulo');
-setlocale(LC_TIME, 'pt_BR.utf8', 'pt_BR', 'portuguese');    
+setlocale(LC_TIME, 'pt_BR.utf8', 'pt_BR', 'portuguese');
 
 include dirname(__DIR__) . '/../includes/conexao_gerar.php';
 
@@ -19,13 +24,19 @@ $id = $_POST['id'];
 if( isset($_POST['origem']) ) $origem = $_POST['origem']; else $origem = null;
 
 //
-//- LÊ DADOS DO ESPELHO 
+//- LÊ DADOS DO ESPELHO
 //
     $sql = "SELECT * FROM rh_ponto_espelhos WHERE id = :id";
     $consulta = $conn->prepare($sql);
     $consulta->bindParam(':id', $id);
     $consulta->execute();
     $linha = $consulta->fetch(PDO::FETCH_ASSOC);
+
+    if (!$linha || (int) $linha['colaborador_id'] !== (int) $_SESSION['idColab']) {
+        http_response_code(403);
+        die(json_encode(["status" => false, "msg" => "Acesso negado."]));
+    }
+
     extract($linha);
     /* campos lidos: 
         id, colaborador_id, ano, mes, dsMes, periodo_ini, periodo_fim, horas_normal, faltas, extras, 

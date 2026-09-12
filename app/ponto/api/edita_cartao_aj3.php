@@ -9,6 +9,12 @@ require_once dirname(__DIR__) . '/../includes/conexao_gerar.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
+if (empty($_SESSION['idLogin']) || empty($_SESSION['idColab'])) {
+    http_response_code(403);
+    echo json_encode(['status' => false, 'mensagem' => 'Sessão inválida.']);
+    exit;
+}
+
 // Captura e valida parâmetros
 $parametros = filter_input_array(INPUT_POST, FILTER_DEFAULT);
 $id = isset($parametros['id']) ? (int)$parametros['id'] : 0;
@@ -19,12 +25,17 @@ if ($id <= 0) {
 }
 
 //
-//- CONFIRMA QUE STATUS = 'AGUARDANDO'
+//- CONFIRMA QUE STATUS = 'AGUARDANDO' E QUE A SOLICITAÇÃO É DO PRÓPRIO USUÁRIO
 //
-    $sql = "SELECT status FROM rh_ponto_solicitacoes WHERE id = ?";
+    $sql = "SELECT status, colaborador_id FROM rh_ponto_solicitacoes WHERE id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->execute([$id]);
     $solicitacao = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$solicitacao || (int) $solicitacao['colaborador_id'] !== (int) $_SESSION['idColab']) {
+        http_response_code(403);
+        echo json_encode(['status' => false, 'mensagem' => 'Acesso negado.']);
+        exit;
+    }
     if ($solicitacao['status'] != 'AGUARDANDO') {
         echo json_encode([
             'status' => false,
