@@ -13,6 +13,9 @@ $idLogin = $_SESSION['idLogin'];
 $dados = filter_input_array(INPUT_POST, FILTER_DEFAULT);
 
 if( $dados ) extract($dados);
+// reafirma identidade da sessão depois do extract() — POST não deve conseguir sobrescrever
+$idEmpresa = $_SESSION['idEmpresa'];
+$idLogin = $_SESSION['idLogin'];
 /*
 include "debug.php";
 debug( json_encode($dados, JSON_PRETTY_PRINT));

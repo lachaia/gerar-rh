@@ -29,6 +29,7 @@ if (isset($_SESSION['idLogin']) && !empty($_SESSION['idLogin'])) {
     //
 } else {
     header("Location: ../logout.php");
+    exit(); // faltava — sem isso a execução continuava mesmo sem sessão válida
 }
 
 // Validação básica
@@ -38,6 +39,9 @@ if (!isset($idTipoAcao, $idPessoa, $idEmpresa, $data, $descricao)) {
 }
 
 extract($parametros);
+// reafirma identidade da sessão depois do extract() — POST não deve conseguir sobrescrever
+$idLogin = $_SESSION['idLogin'];
+$idUsuario = $_SESSION['idUsuario'];
 $sql = "INSERT INTO rh_pessoas_ldt (idAcaoTipo, idPessoa, idEmpresa, data, descricao, idLogin, idUsuario) 
             VALUES (:idAcaoTipo, :idPessoa, :idEmpresa, :data, :descricao, :idLogin, :idUsuario)";
 $stmt = $conn->prepare($sql);

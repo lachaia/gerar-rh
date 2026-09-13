@@ -42,7 +42,10 @@ if (!isset($idAcao, $idTipoAcao, $xdata, $xdescricao)) {
 }
 
 extract($parametros);
-$sql = "UPDATE rh_ouvidoria_ldt SET idAcaoTipo = :idAcaoTipo, data = :data, descricao = :descricao 
+// reafirma identidade da sessão depois do extract() — POST não deve conseguir sobrescrever
+$idLogin = $_SESSION['idLogin'];
+$idUsuario = $_SESSION['idUsuario'];
+$sql = "UPDATE rh_ouvidoria_ldt SET idAcaoTipo = :idAcaoTipo, data = :data, descricao = :descricao
             WHERE idAcao = :idAcao";
 $stmt = $conn->prepare($sql);
 $stmt->bindParam(':idAcaoTipo', $idTipoAcao,  PDO::PARAM_INT);

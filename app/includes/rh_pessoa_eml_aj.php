@@ -21,6 +21,10 @@ $agora = date("Y-m-d H:i:s");
 
 $dados = filter_input_array(INPUT_POST, FILTER_DEFAULT);
 extract($dados);
+// reafirma identidade da sessão depois do extract() — POST não deve conseguir sobrescrever
+$idUsuario = $_SESSION['idUsuario'];
+$idLogin   = $_SESSION['idLogin'];
+$idEmpresa = $_SESSION['idEmpresa'];
 
 if (empty($destino)) {
     $retorna = ["status" => false, "msg" => '<div class="alert alert-danger" role="alert">ERRO: sem destinatário!</div>'];

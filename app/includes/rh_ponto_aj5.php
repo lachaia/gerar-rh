@@ -22,6 +22,8 @@ include_once "f_logs.php";
 
 $dados = filter_input_array(INPUT_POST, FILTER_DEFAULT);
 if( $dados ) extract($dados);
+// reafirma identidade da sessão depois do extract() — POST não deve conseguir sobrescrever
+$idUsuario = $_SESSION['idUsuario'];
 
 $retorno_ok = [
     "status" => false,

@@ -19,6 +19,8 @@ $dados = filter_input_array(INPUT_POST, FILTER_DEFAULT);
 
 if( $dados ){
     extract($dados);
+    // reafirma identidade da sessão depois do extract() — POST não deve conseguir sobrescrever
+    $idLogin = $_SESSION['idLogin'];
     // Nota: Certifique-se que $id e $status existem após o extract
 } else {
     die(json_encode(["status" => false, "msg" => "Faltaram Parâmetros!"]));

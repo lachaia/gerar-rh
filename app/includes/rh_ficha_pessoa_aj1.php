@@ -37,6 +37,10 @@ die( json_encode( $retorna ) );
 
 if( $dados ){
      extract($dados);
+     // reafirma identidade da sessão depois do extract() — POST não deve conseguir sobrescrever
+     $idUsuario = $_SESSION['idUsuario'];
+     $idLogin   = $_SESSION['idLogin'];
+     $idEmpresa = $_SESSION['idEmpresa'];
 } else{
     $retorna = [ "status" => false, "msg" => '<div class="alert alert-danger" role="alert">Faltou Parâmetros!</div>'];
     die( json_encode( $retorna ) ); 

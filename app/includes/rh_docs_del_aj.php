@@ -26,6 +26,9 @@ $idLogin   = $_SESSION['idLogin'];
 
 $dados = filter_input_array(INPUT_POST, FILTER_DEFAULT);
 extract($dados);
+// reafirma identidade da sessão depois do extract() — POST não deve conseguir sobrescrever
+$idUsuario = $_SESSION['idUsuario'];
+$idLogin   = $_SESSION['idLogin'];
 
 //
 //- Recupera dados antigos

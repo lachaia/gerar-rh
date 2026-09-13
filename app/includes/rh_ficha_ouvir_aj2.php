@@ -21,6 +21,10 @@ if (!isset($_SESSION['idLogin']) || !in_array((int) ($_SESSION['idGrupo'] ?? 0),
 
 $dados = filter_input_array(INPUT_POST, FILTER_DEFAULT);
 if ($dados) extract($dados);
+// reafirma identidade da sessão depois do extract() — POST não deve conseguir sobrescrever
+$idLogin = $_SESSION['idLogin'];
+$idUsuario = $_SESSION['idUsuario'];
+$idEmpresa = $_SESSION['idEmpresa'];
 /*
 include "debug.php";
 debug( json_encode($dados, JSON_PRETTY_PRINT) );

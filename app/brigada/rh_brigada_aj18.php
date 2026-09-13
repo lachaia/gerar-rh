@@ -25,6 +25,10 @@ if (!isset($_SESSION['idLogin']) || (empty($_SESSION['dcBrigada']) && (int) ($_S
 $dados = filter_input_array(INPUT_POST, FILTER_DEFAULT);
 if( $dados ){
     extract($dados);
+    // reafirma identidade da sessão depois do extract() — POST não deve conseguir sobrescrever
+    $idLogin = $_SESSION['idLogin'];
+    $nmLogin = $_SESSION['nmLogin'];
+    $idEmpresa = $_SESSION['idEmpresa'];
     $strDados = json_encode($dados, JSON_UNESCAPED_UNICODE);
 } else{
     die(json_encode(["status" => false, "msg" => "Faltaram Parâmetros!"]));

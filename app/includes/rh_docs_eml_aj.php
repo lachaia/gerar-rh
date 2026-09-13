@@ -35,6 +35,13 @@ include_once "../includes/conexao_gerar.php";
 
 $dados = filter_input_array(INPUT_POST, FILTER_DEFAULT);
 if( $dados ) extract($dados);
+// reafirma identidade da sessão depois do extract() — POST não deve conseguir sobrescrever
+$idUsuario = $_SESSION['idUsuario'];
+$idGrupo   = $_SESSION['idGrupo'  ];
+$idLogin   = $_SESSION['idLogin'  ];
+$nmFrom    = $_SESSION['nmUsuario'];
+$emailFrom = $_SESSION['email'    ]; //- quem envia
+$idEmpresa = $_SESSION['idEmpresa'];
 /*
 include_once "../includes/debug.php";
 debug( json_encode($dados, JSON_PRETTY_PRINT) );

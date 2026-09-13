@@ -17,6 +17,9 @@ include_once "f_linha_do_tempo.php";
 
 $dados = filter_input_array(INPUT_POST, FILTER_DEFAULT);
 if ($dados) extract($dados);
+// reafirma identidade da sessão depois do extract() — POST não deve conseguir sobrescrever
+$idLogin = $_SESSION['idLogin'];
+$idEmpresa = $_SESSION['idEmpresa'];
 /*
 include "debug.php";
 debug( json_encode($dados, JSON_PRETTY_PRINT)  );
@@ -37,6 +40,10 @@ debug( json_encode($dados, JSON_PRETTY_PRINT)  );
         exit;
     }
     extract($dados);
+    // rh_autocadastro tem sua própria coluna idLogin (quem criou o buffer) —
+    // reafirma de novo o idLogin da sessão, senão $idLoginAprova mais
+    // abaixo (quem aprovou a importação) ficaria com o valor errado.
+    $idLogin = $_SESSION['idLogin'];
 
 //
 //- VERIFICAR SE JÁ EXISTE LÁ

@@ -15,6 +15,8 @@ $idLogin = $_SESSION['idLogin'] ?? 0; // usuário que está aplicando o reajuste
 $dados = filter_input_array(INPUT_POST, FILTER_DEFAULT);
 if( $dados ){
     extract($dados);
+    // reafirma identidade da sessão depois do extract() — POST não deve conseguir sobrescrever
+    $idLogin = $_SESSION['idLogin'] ?? 0; // usuário que está aplicando o reajuste
 } else{
     die(json_encode(["status" => false, "msg" => "Faltaram Parâmetros!"]));
 }
