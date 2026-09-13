@@ -13,6 +13,7 @@ if (!isset($_SESSION['idLogin']) || ($grupo > 2 && $grupo != 9 && $grupo != 7)) 
 
 include_once "../includes/conexao_gerar.php";
 include_once "../includes/f_logs.php";
+include_once "../includes/f_upload_seguro.php";
 
 $idModulo  = 1; // rh_usuarios.php
 
@@ -142,10 +143,18 @@ try {
         //
         if (! empty($_FILES["foto"]["name"])) {
             //
-            //- apaga foto antiga
+            // Diferente dos irmãos rh_perfil_aj.php/rh_usuarios_inc_aj.php,
+            // este arquivo não validava extensão/MIME do upload.
+            $validacao = upload_seguro_validar($_FILES['foto'], ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']);
+            if ($validacao !== true) {
+                $conn = null;
+                die(json_encode(["status" => false, "msg" => $validacao]));
+            }
             //
-            if (! empty($antigo['foto'])) {
-                $caminhoDestino = "../fotos/" . $antigo['foto'];
+            //- apaga foto antiga (nunca a imagem padrão compartilhada)
+            //
+            if (! empty($antigo['foto']) && $antigo['foto'] !== 'perfil.png') {
+                $caminhoDestino = "../fotos/" . basename($antigo['foto']);
                 if (file_exists($caminhoDestino)) {
                     unlink($caminhoDestino);
                 }
@@ -155,7 +164,10 @@ try {
             $nomeTemporario = $_FILES["foto"]["tmp_name"];
             $nomeArquivo = $_FILES["foto"]["name"];
             $extensao = pathinfo($nomeArquivo, PATHINFO_EXTENSION);
-            $novoNome = "usu_" . str_pad($idUsuario, 6, "0", STR_PAD_LEFT) . "." . $extensao;
+            // Nome antes era só "usu_<idUsuario>.<ext>", sem parte aleatória —
+            // totalmente previsível (facilita adivinhar onde um upload cairia
+            // caso alguma validação de tipo seja um dia contornada).
+            $novoNome = "usu_" . str_pad($idUsuario, 6, "0", STR_PAD_LEFT) . "_" . bin2hex(random_bytes(4)) . "." . $extensao;
             $caminhoDestino = "../fotos/" . $novoNome;
             //
             //

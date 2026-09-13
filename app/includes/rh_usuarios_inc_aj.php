@@ -112,12 +112,11 @@ if (isset($_FILES["foto"]) && $_FILES["foto"]["error"] == UPLOAD_ERR_OK) {
     $nomeTemporario = $_FILES["foto"]["tmp_name"];
     $nomeArquivo = $_FILES["foto"]["name"];
     $extensao = strtolower(pathinfo($nomeArquivo,PATHINFO_EXTENSION));
-    $novoNome = "usu_" . str_pad($idUsuario, 6, "0", STR_PAD_LEFT) . "." . $extensao;
+    // Nome antes era só "usu_<idUsuario>.<ext>", sem parte aleatória —
+    // totalmente previsível (facilita adivinhar onde um upload cairia
+    // caso alguma validação de tipo seja um dia contornada).
+    $novoNome = "usu_" . str_pad($idUsuario, 6, "0", STR_PAD_LEFT) . "_" . bin2hex(random_bytes(4)) . "." . $extensao;
     $caminhoDestino = "../fotos/" . $novoNome;
-    //
-    if (file_exists($caminhoDestino)) {
-        unlink( $caminhoDestino );
-    }
     //
     if (move_uploaded_file($nomeTemporario, $caminhoDestino)) {
         // O arquivo foi movido com sucesso, você pode continuar o processamento aqui
