@@ -646,190 +646,127 @@ ALTER TABLE `rs_vagas_mot`
 ALTER TABLE `rs_vagas_timeline`
   ADD CONSTRAINT `fk_rs_vagas_timeline_vaga_id` FOREIGN KEY (`vaga_id`) REFERENCES `rs_vagas` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
+-- ============================================================================
+-- RELAÇÕES DA CATEGORIA A — tinham linhas órfãs (sentinela "0" em vez de
+-- NULL), a limpeza de dados já foi aplicada em produção (ver
+-- DIAGNOSTICO_ORFAOS.md) e reconfirmado por reconsulta (LEFT JOIN) que
+-- ficaram com ZERO linhas órfãs. Prontas para rodar.
+-- ============================================================================
+
+ALTER TABLE `rh_pessoas`
+  ADD CONSTRAINT `fk_rh_pessoas_idEstadoCivil` FOREIGN KEY (`idEstadoCivil`) REFERENCES `rh_estadoCivil` (`idEstadoCivil`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_rh_pessoas_idEtnia` FOREIGN KEY (`idEtnia`) REFERENCES `rh_etnias` (`idEtnia`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+ALTER TABLE `rh_usuarios`
+  ADD CONSTRAINT `fk_rh_usuarios_idColab` FOREIGN KEY (`idColab`) REFERENCES `rh_colaboradores` (`idColab`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_rh_usuarios_idLogin` FOREIGN KEY (`idLogin`) REFERENCES `rh_logins` (`idLogin`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE `rh_colaboradores`
+  ADD CONSTRAINT `fk_rh_colaboradores_idBanco` FOREIGN KEY (`idBanco`) REFERENCES `rh_bancos` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_rh_colaboradores_idPlanoSaude` FOREIGN KEY (`idPlanoSaude`) REFERENCES `rh_planos_saude` (`idPlano`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_rh_colaboradores_idPlanoOdonto` FOREIGN KEY (`idPlanoOdonto`) REFERENCES `rh_planos_saude` (`idPlano`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_rh_colaboradores_idCentroCusto` FOREIGN KEY (`idCentroCusto`) REFERENCES `rh_centrocusto` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE `rh_cv_exp`
+  ADD CONSTRAINT `fk_rh_cv_exp_idPessoa` FOREIGN KEY (`idPessoa`) REFERENCES `rh_pessoas` (`idPessoa`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_rh_cv_exp_idLogin` FOREIGN KEY (`idLogin`) REFERENCES `rh_logins` (`idLogin`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE `rh_cv_idiomas`
+  ADD CONSTRAINT `fk_rh_cv_idiomas_idLogin` FOREIGN KEY (`idLogin`) REFERENCES `rh_logins` (`idLogin`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE `rh_cv_conq`
+  ADD CONSTRAINT `fk_rh_cv_conq_idDoc` FOREIGN KEY (`idDoc`) REFERENCES `rh_documentos` (`idDoc`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE `rh_fa_instituicoes`
+  ADD CONSTRAINT `fk_rh_fa_instituicoes_idLogin` FOREIGN KEY (`idLogin`) REFERENCES `rh_logins` (`idLogin`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE `rh_documentos`
+  ADD CONSTRAINT `fk_rh_documentos_idLoginAprova` FOREIGN KEY (`idLoginAprova`) REFERENCES `rh_logins` (`idLogin`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE `rh_pessoas_ldt`
+  ADD CONSTRAINT `fk_rh_pessoas_ldt_idPessoa` FOREIGN KEY (`idPessoa`) REFERENCES `rh_pessoas` (`idPessoa`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_rh_pessoas_ldt_idUsuario` FOREIGN KEY (`idUsuario`) REFERENCES `rh_usuarios` (`idUsuario`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_rh_pessoas_ldt_idLogin` FOREIGN KEY (`idLogin`) REFERENCES `rh_logins` (`idLogin`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE `rh_ouvidoria_ldt`
+  ADD CONSTRAINT `fk_rh_ouvidoria_ldt_idUsuario` FOREIGN KEY (`idUsuario`) REFERENCES `rh_usuarios` (`idUsuario`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_rh_ouvidoria_ldt_idLogin` FOREIGN KEY (`idLogin`) REFERENCES `rh_logins` (`idLogin`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE `rh_colaboradores_hist`
+  ADD CONSTRAINT `fk_rh_colaboradores_hist_idPlanoSaude` FOREIGN KEY (`idPlanoSaude`) REFERENCES `rh_planos_saude` (`idPlano`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_rh_colaboradores_hist_idPlanoOdonto` FOREIGN KEY (`idPlanoOdonto`) REFERENCES `rh_planos_saude` (`idPlano`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_rh_colaboradores_hist_idSubSede` FOREIGN KEY (`idSubSede`) REFERENCES `rh_subsedes` (`subsede_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_rh_colaboradores_hist_idCentroCusto` FOREIGN KEY (`idCentroCusto`) REFERENCES `rh_centrocusto` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE `rh_logs`
+  ADD CONSTRAINT `fk_rh_logs_idLogin` FOREIGN KEY (`idLogin`) REFERENCES `rh_logins` (`idLogin`) ON DELETE SET NULL ON UPDATE CASCADE;
+
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- ============================================================================
--- RELAÇÕES NÃO INCLUÍDAS ACIMA — existem linhas órfãs em produção.
+-- RELAÇÕES NÃO INCLUÍDAS ACIMA — ainda existem linhas órfãs de verdade em
+-- produção (Categoria B/C do DIAGNOSTICO_ORFAOS.md; a Categoria A, sentinela
+-- "0", já foi limpa e essas relações já estão no bloco ativo acima).
 -- Rode a query de diagnóstico (comentada) para ver os registros afetados,
 -- decida se corrige o dado ou aponta para NULL, e só então adicione a FK.
 -- ============================================================================
 
--- rh_pessoas.idEstadoCivil -> rh_estadoCivil.idEstadoCivil  (1 linha(s) orfa(s))
--- SELECT c.* FROM `rh_pessoas` c LEFT JOIN `rh_estadoCivil` p ON c.`idEstadoCivil` = p.`idEstadoCivil`
---   WHERE c.`idEstadoCivil` IS NOT NULL AND p.`idEstadoCivil` IS NULL;
--- ALTER TABLE `rh_pessoas` ADD CONSTRAINT `fk_rh_pessoas_idEstadoCivil` FOREIGN KEY (`idEstadoCivil`) REFERENCES `rh_estadoCivil` (`idEstadoCivil`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- rh_pessoas.idEtnia -> rh_etnias.idEtnia  (3 linha(s) orfa(s))
--- SELECT c.* FROM `rh_pessoas` c LEFT JOIN `rh_etnias` p ON c.`idEtnia` = p.`idEtnia`
---   WHERE c.`idEtnia` IS NOT NULL AND p.`idEtnia` IS NULL;
--- ALTER TABLE `rh_pessoas` ADD CONSTRAINT `fk_rh_pessoas_idEtnia` FOREIGN KEY (`idEtnia`) REFERENCES `rh_etnias` (`idEtnia`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- rh_enderecos.idPessoa -> rh_pessoas.idPessoa  (8 linha(s) orfa(s))
+-- rh_enderecos.idPessoa -> rh_pessoas.idPessoa  (7 linha(s) orfa(s) — Categoria B, cluster de pessoas excluídas)
 -- SELECT c.* FROM `rh_enderecos` c LEFT JOIN `rh_pessoas` p ON c.`idPessoa` = p.`idPessoa`
 --   WHERE c.`idPessoa` IS NOT NULL AND p.`idPessoa` IS NULL;
 -- ALTER TABLE `rh_enderecos` ADD CONSTRAINT `fk_rh_enderecos_idPessoa` FOREIGN KEY (`idPessoa`) REFERENCES `rh_pessoas` (`idPessoa`) ON DELETE CASCADE ON UPDATE CASCADE;
 
--- rh_usuarios.idUsuarioGrupo -> rh_usuariosgrupo.idUsuarioGrupo  (1 linha(s) orfa(s))
+-- rh_usuarios.idUsuarioGrupo -> rh_usuariosgrupo.idUsuarioGrupo  (1 linha(s) orfa(s) — Categoria B, falta a linha do grupo 8/Candidatos)
 -- SELECT c.* FROM `rh_usuarios` c LEFT JOIN `rh_usuariosgrupo` p ON c.`idUsuarioGrupo` = p.`idUsuarioGrupo`
 --   WHERE c.`idUsuarioGrupo` IS NOT NULL AND p.`idUsuarioGrupo` IS NULL;
 -- ALTER TABLE `rh_usuarios` ADD CONSTRAINT `fk_rh_usuarios_idUsuarioGrupo` FOREIGN KEY (`idUsuarioGrupo`) REFERENCES `rh_usuariosgrupo` (`idUsuarioGrupo`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- rh_usuarios.idPessoa -> rh_pessoas.idPessoa  (1 linha(s) orfa(s))
+-- rh_usuarios.idPessoa -> rh_pessoas.idPessoa  (1 linha(s) orfa(s) — Categoria B, jose.toledo)
 -- SELECT c.* FROM `rh_usuarios` c LEFT JOIN `rh_pessoas` p ON c.`idPessoa` = p.`idPessoa`
 --   WHERE c.`idPessoa` IS NOT NULL AND p.`idPessoa` IS NULL;
 -- ALTER TABLE `rh_usuarios` ADD CONSTRAINT `fk_rh_usuarios_idPessoa` FOREIGN KEY (`idPessoa`) REFERENCES `rh_pessoas` (`idPessoa`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- rh_usuarios.idColab -> rh_colaboradores.idColab  (39 linha(s) orfa(s))
--- SELECT c.* FROM `rh_usuarios` c LEFT JOIN `rh_colaboradores` p ON c.`idColab` = p.`idColab`
---   WHERE c.`idColab` IS NOT NULL AND p.`idColab` IS NULL;
--- ALTER TABLE `rh_usuarios` ADD CONSTRAINT `fk_rh_usuarios_idColab` FOREIGN KEY (`idColab`) REFERENCES `rh_colaboradores` (`idColab`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- rh_usuarios.idLogin -> rh_logins.idLogin  (1 linha(s) orfa(s))
--- SELECT c.* FROM `rh_usuarios` c LEFT JOIN `rh_logins` p ON c.`idLogin` = p.`idLogin`
---   WHERE c.`idLogin` IS NOT NULL AND p.`idLogin` IS NULL;
--- ALTER TABLE `rh_usuarios` ADD CONSTRAINT `fk_rh_usuarios_idLogin` FOREIGN KEY (`idLogin`) REFERENCES `rh_logins` (`idLogin`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- rh_colaboradores.idBanco -> rh_bancos.id  (2 linha(s) orfa(s))
--- SELECT c.* FROM `rh_colaboradores` c LEFT JOIN `rh_bancos` p ON c.`idBanco` = p.`id`
---   WHERE c.`idBanco` IS NOT NULL AND p.`id` IS NULL;
--- ALTER TABLE `rh_colaboradores` ADD CONSTRAINT `fk_rh_colaboradores_idBanco` FOREIGN KEY (`idBanco`) REFERENCES `rh_bancos` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- rh_colaboradores.idPlanoSaude -> rh_planos_saude.idPlano  (6 linha(s) orfa(s))
--- SELECT c.* FROM `rh_colaboradores` c LEFT JOIN `rh_planos_saude` p ON c.`idPlanoSaude` = p.`idPlano`
---   WHERE c.`idPlanoSaude` IS NOT NULL AND p.`idPlano` IS NULL;
--- ALTER TABLE `rh_colaboradores` ADD CONSTRAINT `fk_rh_colaboradores_idPlanoSaude` FOREIGN KEY (`idPlanoSaude`) REFERENCES `rh_planos_saude` (`idPlano`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- rh_colaboradores.idPlanoOdonto -> rh_planos_saude.idPlano  (4 linha(s) orfa(s))
--- SELECT c.* FROM `rh_colaboradores` c LEFT JOIN `rh_planos_saude` p ON c.`idPlanoOdonto` = p.`idPlano`
---   WHERE c.`idPlanoOdonto` IS NOT NULL AND p.`idPlano` IS NULL;
--- ALTER TABLE `rh_colaboradores` ADD CONSTRAINT `fk_rh_colaboradores_idPlanoOdonto` FOREIGN KEY (`idPlanoOdonto`) REFERENCES `rh_planos_saude` (`idPlano`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- rh_colaboradores.idCentroCusto -> rh_centrocusto.id  (2 linha(s) orfa(s))
--- SELECT c.* FROM `rh_colaboradores` c LEFT JOIN `rh_centrocusto` p ON c.`idCentroCusto` = p.`id`
---   WHERE c.`idCentroCusto` IS NOT NULL AND p.`id` IS NULL;
--- ALTER TABLE `rh_colaboradores` ADD CONSTRAINT `fk_rh_colaboradores_idCentroCusto` FOREIGN KEY (`idCentroCusto`) REFERENCES `rh_centrocusto` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- rh_cv.idPessoa -> rh_pessoas.idPessoa  (1 linha(s) orfa(s))
+-- rh_cv.idPessoa -> rh_pessoas.idPessoa  (1 linha(s) orfa(s) — Categoria B, pessoa 13)
 -- SELECT c.* FROM `rh_cv` c LEFT JOIN `rh_pessoas` p ON c.`idPessoa` = p.`idPessoa`
 --   WHERE c.`idPessoa` IS NOT NULL AND p.`idPessoa` IS NULL;
 -- ALTER TABLE `rh_cv` ADD CONSTRAINT `fk_rh_cv_idPessoa` FOREIGN KEY (`idPessoa`) REFERENCES `rh_pessoas` (`idPessoa`) ON DELETE CASCADE ON UPDATE CASCADE;
 
--- rh_cv_exp.idPessoa -> rh_pessoas.idPessoa  (1 linha(s) orfa(s))
--- SELECT c.* FROM `rh_cv_exp` c LEFT JOIN `rh_pessoas` p ON c.`idPessoa` = p.`idPessoa`
---   WHERE c.`idPessoa` IS NOT NULL AND p.`idPessoa` IS NULL;
--- ALTER TABLE `rh_cv_exp` ADD CONSTRAINT `fk_rh_cv_exp_idPessoa` FOREIGN KEY (`idPessoa`) REFERENCES `rh_pessoas` (`idPessoa`) ON DELETE CASCADE ON UPDATE CASCADE;
-
--- rh_cv_exp.idLogin -> rh_logins.idLogin  (7 linha(s) orfa(s))
--- SELECT c.* FROM `rh_cv_exp` c LEFT JOIN `rh_logins` p ON c.`idLogin` = p.`idLogin`
---   WHERE c.`idLogin` IS NOT NULL AND p.`idLogin` IS NULL;
--- ALTER TABLE `rh_cv_exp` ADD CONSTRAINT `fk_rh_cv_exp_idLogin` FOREIGN KEY (`idLogin`) REFERENCES `rh_logins` (`idLogin`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- rh_cv_fa.idPessoa -> rh_pessoas.idPessoa  (1 linha(s) orfa(s))
+-- rh_cv_fa.idPessoa -> rh_pessoas.idPessoa  (1 linha(s) orfa(s) — Categoria B, cluster de pessoas excluídas)
 -- SELECT c.* FROM `rh_cv_fa` c LEFT JOIN `rh_pessoas` p ON c.`idPessoa` = p.`idPessoa`
 --   WHERE c.`idPessoa` IS NOT NULL AND p.`idPessoa` IS NULL;
 -- ALTER TABLE `rh_cv_fa` ADD CONSTRAINT `fk_rh_cv_fa_idPessoa` FOREIGN KEY (`idPessoa`) REFERENCES `rh_pessoas` (`idPessoa`) ON DELETE CASCADE ON UPDATE CASCADE;
 
--- rh_cv_idiomas.idPessoa -> rh_pessoas.idPessoa  (1 linha(s) orfa(s))
+-- rh_cv_idiomas.idPessoa -> rh_pessoas.idPessoa  (1 linha(s) orfa(s) — Categoria B, cluster de pessoas excluídas)
 -- SELECT c.* FROM `rh_cv_idiomas` c LEFT JOIN `rh_pessoas` p ON c.`idPessoa` = p.`idPessoa`
 --   WHERE c.`idPessoa` IS NOT NULL AND p.`idPessoa` IS NULL;
 -- ALTER TABLE `rh_cv_idiomas` ADD CONSTRAINT `fk_rh_cv_idiomas_idPessoa` FOREIGN KEY (`idPessoa`) REFERENCES `rh_pessoas` (`idPessoa`) ON DELETE CASCADE ON UPDATE CASCADE;
 
--- rh_cv_idiomas.idLogin -> rh_logins.idLogin  (5 linha(s) orfa(s))
--- SELECT c.* FROM `rh_cv_idiomas` c LEFT JOIN `rh_logins` p ON c.`idLogin` = p.`idLogin`
---   WHERE c.`idLogin` IS NOT NULL AND p.`idLogin` IS NULL;
--- ALTER TABLE `rh_cv_idiomas` ADD CONSTRAINT `fk_rh_cv_idiomas_idLogin` FOREIGN KEY (`idLogin`) REFERENCES `rh_logins` (`idLogin`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- rh_cv_conq.idPessoa -> rh_pessoas.idPessoa  (1 linha(s) orfa(s))
+-- rh_cv_conq.idPessoa -> rh_pessoas.idPessoa  (1 linha(s) orfa(s) — Categoria B, cluster de pessoas excluídas)
 -- SELECT c.* FROM `rh_cv_conq` c LEFT JOIN `rh_pessoas` p ON c.`idPessoa` = p.`idPessoa`
 --   WHERE c.`idPessoa` IS NOT NULL AND p.`idPessoa` IS NULL;
 -- ALTER TABLE `rh_cv_conq` ADD CONSTRAINT `fk_rh_cv_conq_idPessoa` FOREIGN KEY (`idPessoa`) REFERENCES `rh_pessoas` (`idPessoa`) ON DELETE CASCADE ON UPDATE CASCADE;
 
--- rh_cv_conq.idDoc -> rh_documentos.idDoc  (2 linha(s) orfa(s))
--- SELECT c.* FROM `rh_cv_conq` c LEFT JOIN `rh_documentos` p ON c.`idDoc` = p.`idDoc`
---   WHERE c.`idDoc` IS NOT NULL AND p.`idDoc` IS NULL;
--- ALTER TABLE `rh_cv_conq` ADD CONSTRAINT `fk_rh_cv_conq_idDoc` FOREIGN KEY (`idDoc`) REFERENCES `rh_documentos` (`idDoc`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- rh_fa_instituicoes.idLogin -> rh_logins.idLogin  (2 linha(s) orfa(s))
--- SELECT c.* FROM `rh_fa_instituicoes` c LEFT JOIN `rh_logins` p ON c.`idLogin` = p.`idLogin`
---   WHERE c.`idLogin` IS NOT NULL AND p.`idLogin` IS NULL;
--- ALTER TABLE `rh_fa_instituicoes` ADD CONSTRAINT `fk_rh_fa_instituicoes_idLogin` FOREIGN KEY (`idLogin`) REFERENCES `rh_logins` (`idLogin`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- rh_documentos.idLoginAprova -> rh_logins.idLogin  (9 linha(s) orfa(s))
--- SELECT c.* FROM `rh_documentos` c LEFT JOIN `rh_logins` p ON c.`idLoginAprova` = p.`idLogin`
---   WHERE c.`idLoginAprova` IS NOT NULL AND p.`idLogin` IS NULL;
--- ALTER TABLE `rh_documentos` ADD CONSTRAINT `fk_rh_documentos_idLoginAprova` FOREIGN KEY (`idLoginAprova`) REFERENCES `rh_logins` (`idLogin`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- rh_emails.idDoc -> rh_documentos.idDoc  (1 linha(s) orfa(s))
+-- rh_emails.idDoc -> rh_documentos.idDoc  (1 linha(s) orfa(s) — Categoria B, documento 14 não existe mais)
 -- SELECT c.* FROM `rh_emails` c LEFT JOIN `rh_documentos` p ON c.`idDoc` = p.`idDoc`
 --   WHERE c.`idDoc` IS NOT NULL AND p.`idDoc` IS NULL;
 -- ALTER TABLE `rh_emails` ADD CONSTRAINT `fk_rh_emails_idDoc` FOREIGN KEY (`idDoc`) REFERENCES `rh_documentos` (`idDoc`) ON DELETE SET NULL ON UPDATE CASCADE;
 
--- rh_pessoas_emg.idPessoa -> rh_pessoas.idPessoa  (3 linha(s) orfa(s))
+-- rh_pessoas_emg.idPessoa -> rh_pessoas.idPessoa  (3 linha(s) orfa(s) — Categoria B, cluster de pessoas excluídas)
 -- SELECT c.* FROM `rh_pessoas_emg` c LEFT JOIN `rh_pessoas` p ON c.`idPessoa` = p.`idPessoa`
 --   WHERE c.`idPessoa` IS NOT NULL AND p.`idPessoa` IS NULL;
 -- ALTER TABLE `rh_pessoas_emg` ADD CONSTRAINT `fk_rh_pessoas_emg_idPessoa` FOREIGN KEY (`idPessoa`) REFERENCES `rh_pessoas` (`idPessoa`) ON DELETE CASCADE ON UPDATE CASCADE;
 
--- rh_pessoas_ldt.idPessoa -> rh_pessoas.idPessoa  (10 linha(s) orfa(s))
--- SELECT c.* FROM `rh_pessoas_ldt` c LEFT JOIN `rh_pessoas` p ON c.`idPessoa` = p.`idPessoa`
---   WHERE c.`idPessoa` IS NOT NULL AND p.`idPessoa` IS NULL;
--- ALTER TABLE `rh_pessoas_ldt` ADD CONSTRAINT `fk_rh_pessoas_ldt_idPessoa` FOREIGN KEY (`idPessoa`) REFERENCES `rh_pessoas` (`idPessoa`) ON DELETE CASCADE ON UPDATE CASCADE;
-
--- rh_pessoas_ldt.idUsuario -> rh_usuarios.idUsuario  (8 linha(s) orfa(s))
--- SELECT c.* FROM `rh_pessoas_ldt` c LEFT JOIN `rh_usuarios` p ON c.`idUsuario` = p.`idUsuario`
---   WHERE c.`idUsuario` IS NOT NULL AND p.`idUsuario` IS NULL;
--- ALTER TABLE `rh_pessoas_ldt` ADD CONSTRAINT `fk_rh_pessoas_ldt_idUsuario` FOREIGN KEY (`idUsuario`) REFERENCES `rh_usuarios` (`idUsuario`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- rh_pessoas_ldt.idLogin -> rh_logins.idLogin  (8 linha(s) orfa(s))
--- SELECT c.* FROM `rh_pessoas_ldt` c LEFT JOIN `rh_logins` p ON c.`idLogin` = p.`idLogin`
---   WHERE c.`idLogin` IS NOT NULL AND p.`idLogin` IS NULL;
--- ALTER TABLE `rh_pessoas_ldt` ADD CONSTRAINT `fk_rh_pessoas_ldt_idLogin` FOREIGN KEY (`idLogin`) REFERENCES `rh_logins` (`idLogin`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- rh_ouvidoria_ldt.idUsuario -> rh_usuarios.idUsuario  (2 linha(s) orfa(s))
--- SELECT c.* FROM `rh_ouvidoria_ldt` c LEFT JOIN `rh_usuarios` p ON c.`idUsuario` = p.`idUsuario`
---   WHERE c.`idUsuario` IS NOT NULL AND p.`idUsuario` IS NULL;
--- ALTER TABLE `rh_ouvidoria_ldt` ADD CONSTRAINT `fk_rh_ouvidoria_ldt_idUsuario` FOREIGN KEY (`idUsuario`) REFERENCES `rh_usuarios` (`idUsuario`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- rh_ouvidoria_ldt.idLogin -> rh_logins.idLogin  (2 linha(s) orfa(s))
--- SELECT c.* FROM `rh_ouvidoria_ldt` c LEFT JOIN `rh_logins` p ON c.`idLogin` = p.`idLogin`
---   WHERE c.`idLogin` IS NOT NULL AND p.`idLogin` IS NULL;
--- ALTER TABLE `rh_ouvidoria_ldt` ADD CONSTRAINT `fk_rh_ouvidoria_ldt_idLogin` FOREIGN KEY (`idLogin`) REFERENCES `rh_logins` (`idLogin`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- rh_colaboradores_hist.idPlanoSaude -> rh_planos_saude.idPlano  (24 linha(s) orfa(s))
--- SELECT c.* FROM `rh_colaboradores_hist` c LEFT JOIN `rh_planos_saude` p ON c.`idPlanoSaude` = p.`idPlano`
---   WHERE c.`idPlanoSaude` IS NOT NULL AND p.`idPlano` IS NULL;
--- ALTER TABLE `rh_colaboradores_hist` ADD CONSTRAINT `fk_rh_colaboradores_hist_idPlanoSaude` FOREIGN KEY (`idPlanoSaude`) REFERENCES `rh_planos_saude` (`idPlano`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- rh_colaboradores_hist.idPlanoOdonto -> rh_planos_saude.idPlano  (5 linha(s) orfa(s))
--- SELECT c.* FROM `rh_colaboradores_hist` c LEFT JOIN `rh_planos_saude` p ON c.`idPlanoOdonto` = p.`idPlano`
---   WHERE c.`idPlanoOdonto` IS NOT NULL AND p.`idPlano` IS NULL;
--- ALTER TABLE `rh_colaboradores_hist` ADD CONSTRAINT `fk_rh_colaboradores_hist_idPlanoOdonto` FOREIGN KEY (`idPlanoOdonto`) REFERENCES `rh_planos_saude` (`idPlano`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- rh_colaboradores_hist.idSubSede -> rh_subsedes.subsede_id  (2 linha(s) orfa(s))
--- SELECT c.* FROM `rh_colaboradores_hist` c LEFT JOIN `rh_subsedes` p ON c.`idSubSede` = p.`subsede_id`
---   WHERE c.`idSubSede` IS NOT NULL AND p.`subsede_id` IS NULL;
--- ALTER TABLE `rh_colaboradores_hist` ADD CONSTRAINT `fk_rh_colaboradores_hist_idSubSede` FOREIGN KEY (`idSubSede`) REFERENCES `rh_subsedes` (`subsede_id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- rh_colaboradores_hist.idCentroCusto -> rh_centrocusto.id  (10 linha(s) orfa(s))
--- SELECT c.* FROM `rh_colaboradores_hist` c LEFT JOIN `rh_centrocusto` p ON c.`idCentroCusto` = p.`id`
---   WHERE c.`idCentroCusto` IS NOT NULL AND p.`id` IS NULL;
--- ALTER TABLE `rh_colaboradores_hist` ADD CONSTRAINT `fk_rh_colaboradores_hist_idCentroCusto` FOREIGN KEY (`idCentroCusto`) REFERENCES `rh_centrocusto` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- rh_logs.idLogin -> rh_logins.idLogin  (102 linha(s) orfa(s))
--- SELECT c.* FROM `rh_logs` c LEFT JOIN `rh_logins` p ON c.`idLogin` = p.`idLogin`
---   WHERE c.`idLogin` IS NOT NULL AND p.`idLogin` IS NULL;
--- ALTER TABLE `rh_logs` ADD CONSTRAINT `fk_rh_logs_idLogin` FOREIGN KEY (`idLogin`) REFERENCES `rh_logins` (`idLogin`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- rh_logs.idModulo -> sys_modulos.idModulo  (87 linha(s) orfa(s))
+-- rh_logs.idModulo -> sys_modulos.idModulo  (12 linha(s) orfa(s) — Categoria B, módulo 32 removido/renumerado)
 -- SELECT c.* FROM `rh_logs` c LEFT JOIN `sys_modulos` p ON c.`idModulo` = p.`idModulo`
 --   WHERE c.`idModulo` IS NOT NULL AND p.`idModulo` IS NULL;
 -- ALTER TABLE `rh_logs` ADD CONSTRAINT `fk_rh_logs_idModulo` FOREIGN KEY (`idModulo`) REFERENCES `sys_modulos` (`idModulo`) ON DELETE SET NULL ON UPDATE CASCADE;
 
--- rh_ponto_solicitacoes.batida_id -> rh_ponto_registros.id  (13 linha(s) orfa(s))
+-- rh_ponto_solicitacoes.batida_id -> rh_ponto_registros.id  (3 linha(s) orfa(s) — Categoria B, registros de ponto inexistentes; sentinela 0 já foi limpo)
 -- SELECT c.* FROM `rh_ponto_solicitacoes` c LEFT JOIN `rh_ponto_registros` p ON c.`batida_id` = p.`id`
 --   WHERE c.`batida_id` IS NOT NULL AND p.`id` IS NULL;
 -- ALTER TABLE `rh_ponto_solicitacoes` ADD CONSTRAINT `fk_rh_ponto_solicitacoes_batida_id` FOREIGN KEY (`batida_id`) REFERENCES `rh_ponto_registros` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
--- rh_ponto_auditoria.id_ponto -> rh_ponto_registros.id  (8919 linha(s) orfa(s))
+-- rh_ponto_auditoria.id_ponto -> rh_ponto_registros.id  (8919 linha(s) orfa(s) — Categoria C, NÃO recomendado, ver DIAGNOSTICO_ORFAOS.md)
 -- SELECT c.* FROM `rh_ponto_auditoria` c LEFT JOIN `rh_ponto_registros` p ON c.`id_ponto` = p.`id`
 --   WHERE c.`id_ponto` IS NOT NULL AND p.`id` IS NULL;
 -- ALTER TABLE `rh_ponto_auditoria` ADD CONSTRAINT `fk_rh_ponto_auditoria_id_ponto` FOREIGN KEY (`id_ponto`) REFERENCES `rh_ponto_registros` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
