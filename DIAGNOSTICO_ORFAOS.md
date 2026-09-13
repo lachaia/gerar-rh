@@ -1,6 +1,6 @@
 # Diagnóstico das linhas órfãs (para viabilizar as FKs pendentes)
 
-> Investigação feita em cima do `ADD_FOREIGN_KEYS.sql` gerado anteriormente. Das 51 relações que ficaram de fora por terem linhas órfãs, **15 eram falso-positivo** (a FK apontava para a coluna errada — ver achado #1) e já foram corrigidas. Restam **36 relações genuinamente pendentes de decisão/limpeza**, catalogadas abaixo. Nenhuma alteração foi feita no banco — isto é só o diagnóstico.
+> Investigação feita em cima do `ADD_FOREIGN_KEYS.sql` gerado anteriormente. Das 51 relações que ficaram de fora por terem linhas órfãs, **15 eram falso-positivo** (a FK apontava para a coluna errada — ver achado #1) e já foram corrigidas. Das 36 relações genuinamente pendentes catalogadas abaixo, a **Categoria A (26 relações) já foi aplicada em produção** — restam **10 relações** ainda pendentes de decisão (Categoria B, 9) ou não recomendadas (Categoria C, 1).
 
 ## Achado principal: `idSubSede`/`subsede_id`/`polo_id` usam um código legado, não o `id`
 
@@ -46,39 +46,15 @@ Padrão recorrente: campos opcionais foram gravados com `0` em vez de `NULL` (pr
 | `rh_logs.idModulo` (parte: valor 0) | 75 |
 | `rh_ponto_solicitacoes.batida_id` (parte: valor 0) | 10 |
 
-**Correção sugerida** (revisar e rodar manualmente, uma tabela por vez — não executado por mim):
-```sql
-UPDATE rh_pessoas          SET idEstadoCivil = NULL WHERE idEstadoCivil = 0;
-UPDATE rh_pessoas          SET idEtnia = NULL WHERE idEtnia = 0;
-UPDATE rh_enderecos        SET idPessoa = NULL WHERE idPessoa = 0;   -- CUIDADO: idPessoa é usado no join; confirmar se pode ser NULL na regra de negócio
-UPDATE rh_usuarios         SET idColab = NULL WHERE idColab = 0;
-UPDATE rh_usuarios         SET idLogin = NULL WHERE idLogin = 0;
-UPDATE rh_colaboradores    SET idBanco = NULL WHERE idBanco = 0;
-UPDATE rh_colaboradores    SET idPlanoSaude = NULL WHERE idPlanoSaude = 0;
-UPDATE rh_colaboradores    SET idPlanoOdonto = NULL WHERE idPlanoOdonto = 0;
-UPDATE rh_colaboradores    SET idCentroCusto = NULL WHERE idCentroCusto = 0;
-UPDATE rh_cv_exp           SET idPessoa = NULL WHERE idPessoa = 0;
-UPDATE rh_cv_exp           SET idLogin = NULL WHERE idLogin = 0;
-UPDATE rh_cv_idiomas       SET idLogin = NULL WHERE idLogin = 0;
-UPDATE rh_cv_conq          SET idDoc = NULL WHERE idDoc = 0;
-UPDATE rh_fa_instituicoes  SET idLogin = NULL WHERE idLogin = 0;
-UPDATE rh_documentos       SET idLoginAprova = NULL WHERE idLoginAprova = 0;
-UPDATE rh_pessoas_ldt      SET idPessoa = NULL WHERE idPessoa = 0;
-UPDATE rh_pessoas_ldt      SET idUsuario = NULL WHERE idUsuario = 0;
-UPDATE rh_pessoas_ldt      SET idLogin = NULL WHERE idLogin = 0;
-UPDATE rh_ouvidoria_ldt    SET idUsuario = NULL WHERE idUsuario = 0;
-UPDATE rh_ouvidoria_ldt    SET idLogin = NULL WHERE idLogin = 0;
-UPDATE rh_colaboradores_hist SET idPlanoSaude = NULL WHERE idPlanoSaude = 0;
-UPDATE rh_colaboradores_hist SET idPlanoOdonto = NULL WHERE idPlanoOdonto = 0;
-UPDATE rh_colaboradores_hist SET idSubSede = NULL WHERE idSubSede = 0;
-UPDATE rh_colaboradores_hist SET idCentroCusto = NULL WHERE idCentroCusto = 0;
-UPDATE rh_logs             SET idLogin = NULL WHERE idLogin = 0;
-UPDATE rh_logs             SET idModulo = NULL WHERE idModulo = 0;
-UPDATE rh_ponto_solicitacoes SET batida_id = NULL WHERE batida_id = 0;
-```
-Depois disso, essas FKs entram no `ADD_FOREIGN_KEYS.sql` sem problema.
+**✅ Categoria A aplicada em produção** (todas as 27 linhas acima, mais os 2 casos de `idSubSede`/`subsede_id` vazio tratados à parte — ver nota abaixo). Confirmado por reconsulta (`LEFT JOIN`) após a limpeza: **24 das 32 relações que ficaram de fora do `ADD_FOREIGN_KEYS.sql` estão agora com zero linhas órfãs** e prontas para virar FK sem alteração de dado nenhuma:
 
-**Nota sobre `rh_cv_conq.idLogin`**: essa coluna está como `varchar(45)` em vez de `int` — grava `"0"` e `"66"` como texto. Se for corrigida (tipo + valores), também vira candidata a FK para `rh_logins.idLogin`.
+`rh_pessoas.idEstadoCivil`, `rh_pessoas.idEtnia`, `rh_usuarios.idColab`, `rh_usuarios.idLogin`, `rh_colaboradores.idBanco`, `rh_colaboradores.idPlanoSaude`, `rh_colaboradores.idPlanoOdonto`, `rh_colaboradores.idCentroCusto`, `rh_cv_exp.idPessoa`, `rh_cv_exp.idLogin`, `rh_cv_idiomas.idLogin`, `rh_cv_conq.idDoc`, `rh_fa_instituicoes.idLogin`, `rh_documentos.idLoginAprova`, `rh_pessoas_ldt.idPessoa`, `rh_pessoas_ldt.idUsuario`, `rh_pessoas_ldt.idLogin`, `rh_ouvidoria_ldt.idUsuario`, `rh_ouvidoria_ldt.idLogin`, `rh_colaboradores_hist.idPlanoSaude`, `rh_colaboradores_hist.idPlanoOdonto`, `rh_colaboradores_hist.idSubSede`, `rh_colaboradores_hist.idCentroCusto`, `rh_logs.idLogin`.
+
+As **8 relações restantes** (fora a de auditoria de ponto, Categoria C) continuam com órfãos genuínos e precisam da decisão da Categoria B abaixo antes de virar FK: `rh_enderecos.idPessoa` (7, era 8 — 1 já era sentinela e foi limpo), `rh_usuarios.idUsuarioGrupo` (1), `rh_usuarios.idPessoa` (1), `rh_cv.idPessoa` (1), `rh_cv_fa.idPessoa` (1), `rh_cv_idiomas.idPessoa` (1), `rh_cv_conq.idPessoa` (1), `rh_emails.idDoc` (1), `rh_pessoas_emg.idPessoa` (3), `rh_logs.idModulo` (12).
+
+**Nota sobre `idSubSede`/`subsede_id` vazio**: em vez de `NULL`, esses dois casos (`rh_usuarios.idSubSede`, 1 linha, e `rh_colaboradores_hist.idSubSede`, 2 linhas) foram preenchidos com **101** (código legado da sede de Curitiba, confirmado em `rh_subsedes.subsede_id = 101`), por orientação do usuário — faz mais sentido de negócio do que "sem subsede".
+
+**Nota sobre `rh_cv_conq.idLogin`**: ~~essa coluna está como `varchar(45)` em vez de `int` — grava `"0"` e `"66"` como texto.~~ ✅ CORRIGIDO: coluna convertida para `int NULL` (ver `ANALISE_SEGURANCA.md`), já é candidata a FK para `rh_logins.idLogin` (embora essa relação específica não estivesse na lista de FKs pendentes do `ADD_FOREIGN_KEYS.sql` — só a tipagem estava errada, não havia órfãos).
 
 ## Categoria B — Registros "pai" genuinamente ausentes (precisa de decisão do time)
 
@@ -111,7 +87,7 @@ INSERT INTO rh_usuariosgrupo (idUsuarioGrupo, ...) VALUES (8, 'CANDIDATOS', ...)
 
 ## Resumo do que fazer
 
-1. Rodar os `UPDATE` da Categoria A (baixo risco, revisão rápida) → libera 26 das 36 relações pendentes.
-2. Decidir caso a caso os 9 itens da Categoria B (dados genuinamente inconsistentes) — não há uma correção "óbvia e segura" para aplicar sem intervenção humana.
-3. Para a Categoria C (`rh_ponto_auditoria`), recomendo **não** adicionar a FK — o custo de limpar ~9 mil linhas de log histórico não compensa o benefício, e travar a auditoria não é desejável.
-4. Depois disso, gerar a versão final do `ADD_FOREIGN_KEYS.sql` incluindo as relações que passarem a ficar limpas.
+1. ✅ ~~Rodar os `UPDATE` da Categoria A (baixo risco, revisão rápida) → libera 26 das 36 relações pendentes.~~ Feito — aplicado em produção, reconfirmado por reconsulta que 24 das 26 relações candidatas ficaram com zero órfãos (as outras 2, `rh_enderecos.idPessoa` e `rh_usuarios.idPessoa`/`idUsuarioGrupo`, tinham órfãos adicionais fora do sentinela `0`, que caem na Categoria B).
+2. ⬜ Decidir caso a caso os 9 itens da Categoria B (dados genuinamente inconsistentes) — não há uma correção "óbvia e segura" para aplicar sem intervenção humana.
+3. ⬜ Para a Categoria C (`rh_ponto_auditoria`), recomendo **não** adicionar a FK — o custo de limpar ~9 mil linhas de log histórico não compensa o benefício, e travar a auditoria não é desejável.
+4. ⬜ Adicionar ao `ADD_FOREIGN_KEYS.sql` as 24 relações agora limpas (hoje estão comentadas no script, junto com as que ainda têm órfãos) — e então rodar o script em produção. **Ainda não executado**: o próprio script pede backup + teste em cópia/homologação antes, e alterações de schema (`ALTER TABLE`) ficam sujeitas ao bloqueio do classificador de modo automático do Claude Code mesmo com autorização do usuário na conversa.
