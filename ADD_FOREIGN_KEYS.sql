@@ -45,98 +45,16 @@
 
 SET FOREIGN_KEY_CHECKS = 0;
 
--- ----------------------------------------------------------------------------
--- PRÉ-REQUISITO: duas colunas usadas como alvo de FK abaixo NÃO são a chave
--- primária das tabelas de origem — são um "código legado" do sistema anterior
--- à migração (ex.: rh_subsedes.id=1 tem subsede_id=101). Confirmado contra os
--- dados reais: são únicos em 100% das linhas hoje, mas não têm um índice
--- UNIQUE declarado. Isso é pré-requisito do MySQL para virar alvo de FK.
--- ----------------------------------------------------------------------------
-ALTER TABLE `rh_subsedes` ADD UNIQUE KEY `uk_rh_subsedes_subsede_id` (`subsede_id`);
-ALTER TABLE `rh_polos`    ADD UNIQUE KEY `uk_rh_polos_polo_id` (`polo_id`);
-
--- ----------------------------------------------------------------------------
--- PRÉ-REQUISITO 2: rh_cargos_historico.idTipoAlteracao estava como SMALLINT,
--- mas rh_cargos_tipo_alt.idTipoAlteracao (o PK referenciado) é INT — o
--- InnoDB recusa FK entre tipos incompatíveis (erro 3780). Alargar de
--- SMALLINT para INT é seguro (tabela tem 1 linha só, valor 1).
--- ----------------------------------------------------------------------------
-ALTER TABLE `rh_cargos_historico` MODIFY `idTipoAlteracao` INT NULL;
-
--- ----------------------------------------------------------------
--- Tabela: rh_afastamento_tipos
--- ----------------------------------------------------------------
-ALTER TABLE `rh_afastamento_tipos`
-  ADD CONSTRAINT `fk_rh_afastamento_tipos_idLogin` FOREIGN KEY (`idLogin`) REFERENCES `rh_logins` (`idLogin`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- ----------------------------------------------------------------
--- Tabela: rh_afastamentos
--- ----------------------------------------------------------------
-ALTER TABLE `rh_afastamentos`
-  ADD CONSTRAINT `fk_rh_afastamentos_idColab` FOREIGN KEY (`idColab`) REFERENCES `rh_colaboradores` (`idColab`) ON DELETE RESTRICT ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_rh_afastamentos_idTipo` FOREIGN KEY (`idTipo`) REFERENCES `rh_afastamento_tipos` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_rh_afastamentos_idLogin` FOREIGN KEY (`idLogin`) REFERENCES `rh_logins` (`idLogin`) ON DELETE SET NULL ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_rh_afastamentos_idUsuario` FOREIGN KEY (`idUsuario`) REFERENCES `rh_usuarios` (`idUsuario`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- ----------------------------------------------------------------
--- Tabela: rh_atendimentos
--- ----------------------------------------------------------------
-ALTER TABLE `rh_atendimentos`
-  ADD CONSTRAINT `fk_rh_atendimentos_idSubSede` FOREIGN KEY (`idSubSede`) REFERENCES `rh_subsedes` (`subsede_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_rh_atendimentos_idBrigadista` FOREIGN KEY (`idBrigadista`) REFERENCES `rh_brigadistas` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_rh_atendimentos_idLogin` FOREIGN KEY (`idLogin`) REFERENCES `rh_logins` (`idLogin`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- ----------------------------------------------------------------
--- Tabela: rh_avaliacoes
--- ----------------------------------------------------------------
-ALTER TABLE `rh_avaliacoes`
-  ADD CONSTRAINT `fk_rh_avaliacoes_idColab` FOREIGN KEY (`idColab`) REFERENCES `rh_colaboradores` (`idColab`) ON DELETE RESTRICT ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_rh_avaliacoes_idTipo` FOREIGN KEY (`idTipo`) REFERENCES `rh_avaliacao_tipos` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_rh_avaliacoes_idLogin` FOREIGN KEY (`idLogin`) REFERENCES `rh_logins` (`idLogin`) ON DELETE SET NULL ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_rh_avaliacoes_idColabSuper` FOREIGN KEY (`idColabSuper`) REFERENCES `rh_colaboradores` (`idColab`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- ----------------------------------------------------------------
--- Tabela: rh_brigada_acoes
--- ----------------------------------------------------------------
-ALTER TABLE `rh_brigada_acoes`
-  ADD CONSTRAINT `fk_rh_brigada_acoes_idSubSede` FOREIGN KEY (`idSubSede`) REFERENCES `rh_subsedes` (`subsede_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_rh_brigada_acoes_idLogin` FOREIGN KEY (`idLogin`) REFERENCES `rh_logins` (`idLogin`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- ----------------------------------------------------------------
--- Tabela: rh_brigada_atend_membros
--- ----------------------------------------------------------------
-ALTER TABLE `rh_brigada_atend_membros`
-  ADD CONSTRAINT `fk_rh_brigada_atend_membros_idAtendimento` FOREIGN KEY (`idAtendimento`) REFERENCES `rh_atendimentos` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_rh_brigada_atend_membros_idBrigadista` FOREIGN KEY (`idBrigadista`) REFERENCES `rh_brigadistas` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- ----------------------------------------------------------------
--- Tabela: rh_brigada_reunioes
--- ----------------------------------------------------------------
-ALTER TABLE `rh_brigada_reunioes`
-  ADD CONSTRAINT `fk_rh_brigada_reunioes_idSubSede` FOREIGN KEY (`idSubSede`) REFERENCES `rh_subsedes` (`subsede_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_rh_brigada_reunioes_idLogin` FOREIGN KEY (`idLogin`) REFERENCES `rh_logins` (`idLogin`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- ----------------------------------------------------------------
--- Tabela: rh_brigada_tipo_ocorrencia
--- ----------------------------------------------------------------
-ALTER TABLE `rh_brigada_tipo_ocorrencia`
-  ADD CONSTRAINT `fk_rh_brigada_tipo_ocorrencia_idLogin` FOREIGN KEY (`idLogin`) REFERENCES `rh_logins` (`idLogin`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- ----------------------------------------------------------------
--- Tabela: rh_brigadistas
--- ----------------------------------------------------------------
-ALTER TABLE `rh_brigadistas`
-  ADD CONSTRAINT `fk_rh_brigadistas_idPessoa` FOREIGN KEY (`idPessoa`) REFERENCES `rh_pessoas` (`idPessoa`) ON DELETE RESTRICT ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_rh_brigadistas_idCargoBrigada` FOREIGN KEY (`idCargoBrigada`) REFERENCES `rh_brigada_cargos` (`idCargoBrigada`) ON DELETE RESTRICT ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_rh_brigadistas_idSubSede` FOREIGN KEY (`idSubSede`) REFERENCES `rh_subsedes` (`subsede_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_rh_brigadistas_idLogin` FOREIGN KEY (`idLogin`) REFERENCES `rh_logins` (`idLogin`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- ----------------------------------------------------------------
--- Tabela: rh_cargos
--- ----------------------------------------------------------------
-ALTER TABLE `rh_cargos`
-  ADD CONSTRAINT `fk_rh_cargos_idEmpresa` FOREIGN KEY (`idEmpresa`) REFERENCES `rh_empresas` (`idEmpresa`) ON DELETE RESTRICT ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_rh_cargos_idLogin` FOREIGN KEY (`idLogin`) REFERENCES `rh_logins` (`idLogin`) ON DELETE SET NULL ON UPDATE CASCADE;
+-- ============================================================================
+-- PROGRESSO (atualizado em produção): já aplicados com sucesso —
+--   - Os 2 UNIQUE KEY de pré-requisito (rh_subsedes, rh_polos)
+--   - O MODIFY de rh_cargos_historico.idTipoAlteracao (smallint -> int)
+--   - As FKs de: rh_afastamento_tipos, rh_afastamentos, rh_atendimentos,
+--     rh_avaliacoes, rh_brigada_acoes, rh_brigada_atend_membros,
+--     rh_brigada_reunioes, rh_brigada_tipo_ocorrencia, rh_brigadistas,
+--     rh_cargos (25 constraints no total, confirmado via information_schema)
+-- O script abaixo começa exatamente de onde parou: rh_cargos_historico.
+-- ============================================================================
 
 -- ----------------------------------------------------------------
 -- Tabela: rh_cargos_historico
