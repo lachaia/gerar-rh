@@ -121,7 +121,7 @@ $consulta->bindParam(':idConqTipo', $idConqTipo);
 $consulta->bindParam(':titulo', $titulo);
 $consulta->bindParam(':ano', $ano);
 $consulta->bindParam(':descricao', $descricao);
-$consulta->bindParam(':idLogin', $idLogin);
+$consulta->bindParam(':idLogin', $idLogin, PDO::PARAM_INT);
 $consulta->bindParam(':idDoc', $idDoc);
 
 // Executa a inserção
