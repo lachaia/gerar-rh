@@ -55,6 +55,14 @@ SET FOREIGN_KEY_CHECKS = 0;
 ALTER TABLE `rh_subsedes` ADD UNIQUE KEY `uk_rh_subsedes_subsede_id` (`subsede_id`);
 ALTER TABLE `rh_polos`    ADD UNIQUE KEY `uk_rh_polos_polo_id` (`polo_id`);
 
+-- ----------------------------------------------------------------------------
+-- PRÉ-REQUISITO 2: rh_cargos_historico.idTipoAlteracao estava como SMALLINT,
+-- mas rh_cargos_tipo_alt.idTipoAlteracao (o PK referenciado) é INT — o
+-- InnoDB recusa FK entre tipos incompatíveis (erro 3780). Alargar de
+-- SMALLINT para INT é seguro (tabela tem 1 linha só, valor 1).
+-- ----------------------------------------------------------------------------
+ALTER TABLE `rh_cargos_historico` MODIFY `idTipoAlteracao` INT NULL;
+
 -- ----------------------------------------------------------------
 -- Tabela: rh_afastamento_tipos
 -- ----------------------------------------------------------------
